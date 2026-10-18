@@ -1,6 +1,14 @@
-# zaplecze-resellera
+# Zaplecze Resellera™
 
-Testowy sklep internetowy w stylu **premium dark** — w pełni responsywny (mobile / tablet / desktop), bez zewnętrznych zależności i CDN-ów.
+Testowy sklep internetowy **Zaplecze Resellera** w stylu *premium dark* — w pełni responsywny (mobile / tablet / desktop), bez zewnętrznych zależności i CDN-ów.
+
+## 🌐 GitHub Pages
+
+Strona deployuje się automatycznie przez GitHub Actions: `.github/workflows/deploy-pages.yml`
+(build → `_site/` → upload-pages-artifact → deploy-pages).
+
+Jedyny ręczny krok (ustawienia repozytorium): **Settings → Pages → Build and deployment → Source = „GitHub Actions”**.
+Po tym każdy push na `main` / `arena/ac442971-zaplecze-resellera` oraz ręczny *Run workflow* publikuje stronę na `https://<user>.github.io/<repo>/`.
 
 ## 🚀 Uruchomienie
 
