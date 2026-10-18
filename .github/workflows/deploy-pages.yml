@@ -45,10 +45,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # Uwaga: celowo bez bloku "environment:" — środowisko github-pages ma domyślnie
+    branch policy blokujące deploye z branchy innych niż main, a token CI nie może
+    tej polityki edytować. actions/deploy-pages i tak zwraca page_url poniżej.
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Report page URL
+        run: echo "🌐 Strona opublikowana pod ${{ steps.deployment.outputs.page_url }}"
