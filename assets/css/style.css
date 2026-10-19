@@ -2232,3 +2232,16 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     gap: 8px;
   }
 }
+
+/* ============================================================
+   v7 — zdjęcia opinii w oryginalnych proporcjach (bez przycięcia)
+   ============================================================ */
+.review-img {
+  aspect-ratio: auto;
+}
+.review-img img {
+  width: 100%;
+  height: auto;
+  object-fit: initial;
+  object-position: initial;
+}

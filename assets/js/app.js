@@ -446,6 +446,8 @@
           : `🎉 Masz ${perfUnits} szt. perfum — rabat ilościowy: ${perfPrice} zł/szt.`;
       $("#cartItems").appendChild(note);
     }
+
+    updateCheckoutLink();
   }
 
   /* ---------------- Cart open/close ---------------- */
@@ -561,9 +563,48 @@
   }
 
   /* ---------------- Checkout (Telegram) ----------------
-     Strona jest w budowie — zamówienie domykamy na priv via Telegram. */
+     Strona jest w budowie — zamówienie domykamy na priv via Telegram.
+     Link share/url podstawia gotową wiadomość z zawartością koszyka. */
+  function buildOrderMessage(entries, t) {
+    const lines = entries.map(({ product: p, qty }) => {
+      const unit = unitPriceFor(p);
+      return `• ${qty}× ${p.name} — ${unit} zł/szt = ${unit * qty} zł`;
+    });
+    const payLine =
+      t.extra > 0
+        ? `Płatność: ${t.method.cartLabel} → +${t.extra} zł`
+        : `Płatność: ${t.method.cartLabel}`;
+    const perfUnits = perfumeUnitsInCart();
+    const perfNote =
+      perfUnits >= 5
+        ? `\n(perfumy: ${perfUnits} szt — rabat ilościowy ${perfumeUnitPrice(perfUnits)} zł/szt)`
+        : "";
+    return (
+      `Cześć! Moje zamówienie ze sklepu Zaplecze Resellera:\n\n` +
+      lines.join("\n") +
+      `\n\nWartość produktów: ${t.subtotal} zł\n` +
+      payLine +
+      `\nRazem: ${t.total} zł` +
+      perfNote +
+      `\n\nProszę o potwierdzenie i dane do wysyłki 🙂`
+    );
+  }
+
+  function updateCheckoutLink() {
+    const entries = cartEntries();
+    const btn = $("#checkoutBtn");
+    if (!entries.length) return;
+    const t = cartTotals();
+    const pageUrl = location.href.split("#")[0];
+    btn.href =
+      "https://t.me/share/url?url=" +
+      encodeURIComponent(pageUrl) +
+      "&text=" +
+      encodeURIComponent(buildOrderMessage(entries, t));
+  }
+
   function checkoutNotice() {
-    toast("Otwieram Telegram @Xinekx — dokończ zamówienie na priv 📩");
+    toast("Otwieram Telegram z gotową wiadomością zamówienia 📩");
   }
 
   /* ---------------- UI glue ---------------- */
