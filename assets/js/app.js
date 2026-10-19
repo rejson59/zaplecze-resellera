@@ -586,35 +586,25 @@
      Link t.me/Xinekx?text=… otwiera CZAT z @Xinekx z gotowym szkicem
      wiadomości w polu do pisania (oficjalny draft_text deep-link). */
   function buildOrderMessage(entries, t) {
-    const lines = entries.map(({ product: p, qty }) => {
-      const unit = unitPriceFor(p);
-      return `• ${qty}× ${p.name} — ${unit} zł/szt = ${unit * qty} zł`;
-    });
-    const payLine =
-      t.extra > 0
-        ? `Płatność: ${t.method.cartLabel} → +${t.extra} zł`
-        : `Płatność: ${t.method.cartLabel}`;
-    const perfUnits = perfumeUnitsInCart();
-    const perfNote =
-      perfUnits >= 5
-        ? `\n(perfumy: ${perfUnits} szt — rabat ilościowy ${perfumeUnitPrice(perfUnits)} zł/szt)`
-        : "";
+    /* tylko konkrety: pozycje, płatność, suma, dane do wysyłki */
+    const lines = entries.map(({ product: p, qty }) => `• ${qty}× ${p.name}`);
     const o = loadOrder();
-    const val = (s) => (s && s.trim() ? s.trim() : "— podam w czacie");
-    const notesLine = o.notes && o.notes.trim() ? `\nUwagi: ${o.notes.trim()}` : "";
+    const info = [];
+    if (o.name && o.name.trim()) info.push(`Imię/nick: ${o.name.trim()}`);
+    if (o.phone && o.phone.trim()) info.push(`Telefon: ${o.phone.trim()}`);
+    const ship = o.ship || "Paczkomat InPost";
+    info.push(
+      o.shipDetails && o.shipDetails.trim()
+        ? `Dostawa: ${ship} — ${o.shipDetails.trim()}`
+        : `Dostawa: ${ship}`
+    );
+    if (o.notes && o.notes.trim()) info.push(`Uwagi: ${o.notes.trim()}`);
     return (
-      `Cześć! Moje zamówienie ze sklepu Zaplecze Resellera:\n\n` +
+      `Cześć! Zamówienie (Zaplecze Resellera):\n\n` +
       lines.join("\n") +
-      `\n\nWartość produktów: ${t.subtotal} zł\n` +
-      payLine +
-      `\nRazem: ${t.total} zł` +
-      perfNote +
-      `\n\nDane do wysyłki:\n` +
-      `Imię/nick: ${val(o.name)}\n` +
-      `Telefon: ${val(o.phone)}\n` +
-      `Dostawa: ${o.ship || "Paczkomat InPost"} — ${val(o.shipDetails)}` +
-      notesLine +
-      `\n\nProszę o potwierdzenie zamówienia 🙂`
+      `\n\nPłatność: ${t.method.cartLabel}\n` +
+      `Razem: ${t.total} zł\n\n` +
+      info.join("\n")
     );
   }
 

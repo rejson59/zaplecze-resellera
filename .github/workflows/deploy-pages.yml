@@ -29,6 +29,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/
+          cp 404.html _site/
           cp -r assets _site/
           cp IMG_*.jpg _site/
           cp zestaw-lego-*.jpg _site/
