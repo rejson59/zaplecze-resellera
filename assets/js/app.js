@@ -934,13 +934,11 @@
   }
 
   /* ---------------- Wyszukiwarka paczkomatów ----------------
-     Użytkownik wpisuje miasto → geokodujemy je (Nominatim) i pobieramy
-     paczkomaty z OpenStreetMap (Overpass). Klik w pinezkę = adres
-     paczkomatu sam wpada do zamówienia. Do obu serwisów trafia TYLKO
-     nazwa miasta — współrzędne GPS nigdy nie opuszczają urządzenia. */
-  let leafletPromise = null;
-  let geoMap = null;
-  let geoMarkers = [];
+     MAPA = iframe Google Maps — działa od razu, bez bibliotek i API.
+     LISTA punktów (klik = adres SAM wpada do zamówienia) = baza
+     OpenStreetMap, ładowana w tle; jak nie pyknie, mapa i tak jest.
+     Na zewnątrz idzie tylko nazwa miasta — współrzędne GPS zostają
+     na urządzeniu. */
   let lastPts = [];
   let lastCity = "";
 
@@ -949,26 +947,6 @@
       /[&<>"']/g,
       (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
     );
-  }
-
-  function loadLeaflet() {
-    if (window.L) return Promise.resolve(window.L);
-    if (leafletPromise) return leafletPromise;
-    leafletPromise = new Promise((resolve, reject) => {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = new URL("assets/vendor/leaflet/leaflet.css", document.baseURI).href;
-      document.head.appendChild(link);
-      const sc = document.createElement("script");
-      sc.src = new URL("assets/vendor/leaflet/leaflet.js", document.baseURI).href;
-      sc.onload = () => resolve(window.L);
-      sc.onerror = () => reject(new Error("leaflet-load"));
-      document.head.appendChild(sc);
-    }).catch((e) => {
-      leafletPromise = null;
-      throw e;
-    });
-    return leafletPromise;
   }
 
   function pointLabel(el, city) {
@@ -1001,7 +979,7 @@
     }
     box.hidden = false;
     box.innerHTML =
-      `<span class="geo-list-h">Albo wybierz z listy (klik = adres w zamówieniu):</span>` +
+      `<span class="geo-list-h">Kliknij paczkomat — adres wpadnie do zamówienia:</span>` +
       pts
         .slice(0, 8)
         .map(
@@ -1014,90 +992,6 @@
     );
   }
 
-  function showMapLoading(on) {
-    const el = $("#geoMapLoading");
-    if (el) el.hidden = !on;
-  }
-
-  function renderLockersMap(L, pts, center, city) {
-    if (!geoMap) {
-      const box = $("#geoLeaflet");
-      if (box) box.innerHTML = "";
-      geoMap = L.map("geoLeaflet", { scrollWheelZoom: false });
-      /* ciemne kafelki CARTO (pasują do designu); kaskada fallbacków:
-         3 błędy → OSM, kolejne 3 → mapa Google w iframe */
-      let tileErrors = 0;
-      let switched = false;
-      let layer = L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        {
-          maxZoom: 19,
-          subdomains: "abcd",
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        }
-      ).addTo(geoMap);
-      layer.on("tileerror", () => {
-        tileErrors++;
-        if (tileErrors === 3 && !switched) {
-          switched = true;
-          try {
-            geoMap.removeLayer(layer);
-            const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-              maxZoom: 19,
-              attribution: "&copy; OpenStreetMap",
-            }).addTo(geoMap);
-            osm.on("tileerror", () => {
-              tileErrors++;
-              if (tileErrors >= 6) showGoogleFallbackMap(city);
-            });
-          } catch (e) {}
-        }
-      });
-    }
-    geoMarkers.forEach((m) => geoMap.removeLayer(m));
-    geoMarkers = [];
-    geoMap.setView(center, 13);
-    pts.forEach((el) => {
-      const m = L.circleMarker([el.lat, el.lon], {
-        radius: 8,
-        color: "#08080a",
-        weight: 2,
-        fillColor: "#d8b45c",
-        fillOpacity: 0.95,
-      }).addTo(geoMap);
-      m.bindPopup(
-        `<b>${escapeHtml(pointLabel(el, city))}</b><br><span class="geo-pick-note">Adres jest już w zamówieniu ✅</span>`
-      );
-      m.on("click", () => fillPoint(el, city));
-      geoMarkers.push(m);
-    });
-    showMapLoading(false);
-    /* drawer się animuje — kilka prób odświeżenia rozmiaru, inaczej szare kafle */
-    [80, 350, 800].forEach((ms) =>
-      setTimeout(() => {
-        if (geoMap && geoMap.invalidateSize) geoMap.invalidateSize();
-      }, ms)
-    );
-  }
-
-  /* gdy Leaflet/kafeelki zawodzą — zwykła mapa Google w iframe (bez klikalnych pinezek) */
-  function showGoogleFallbackMap(city) {
-    showMapLoading(false);
-    geoMap = null;
-    geoMarkers = [];
-    const box = $("#geoLeaflet");
-    if (!box) return;
-    box.innerHTML = `<iframe title="Mapa paczkomatów" loading="lazy" src="https://maps.google.com/maps?q=${encodeURIComponent(
-      "paczkomat " + city
-    )}&z=12&output=embed" style="width:100%;height:100%;border:0"></iframe>`;
-    setGeoStatus(
-      "Interaktywna mapa niedostępna — pokazuję mapę zastępczą. Paczkomaty masz też na liście poniżej 📦",
-      true
-    );
-  }
-
-  /* Najpierw szukamy miasta LOKALNIE (lista PL_CITIES — natychmiast, bez sieci),
-     dopiero potem Nominatim. Overpass z zapasowym serwerem. */
   function normalizeCity(str) {
     return str
       .toLowerCase()
@@ -1118,11 +1012,82 @@
     };
   }
 
+  async function geocodeCity(city) {
+    const gRes = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=pl&q=${encodeURIComponent(city + ", Polska")}`,
+      { headers: { Accept: "application/json" } }
+    );
+    const gj = await gRes.json();
+    if (!gj || !gj.length) return null;
+    const g0 = gj[0];
+    const [s, n, w, e] = (g0.boundingbox || []).map(Number);
+    return { lat: +g0.lat, lon: +g0.lon, name: g0.name || city, bbox: [s, n, w, e] };
+  }
+
   const OVERPASS_ENDPOINTS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
   ];
+
+  async function fetchLockerPoints(geo) {
+    const cl = 0.09;
+    const bs = Math.max(geo.bbox[0], geo.lat - cl);
+    const bn = Math.min(geo.bbox[1], geo.lat + cl);
+    const bw = Math.max(geo.bbox[2], geo.lon - cl * 1.6);
+    const be = Math.min(geo.bbox[3], geo.lon + cl * 1.6);
+    const query = `[out:json][timeout:8];node[amenity=parcel_locker](${bs},${bw},${bn},${be});out body 60;`;
+    const attempts = OVERPASS_ENDPOINTS.map((ep) => {
+      const ctrl =
+        typeof AbortController === "function" ? new AbortController() : null;
+      const tAbort = ctrl ? setTimeout(() => ctrl.abort(), 9000) : null;
+      return fetch(ep, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body: query,
+        signal: ctrl ? ctrl.signal : undefined,
+      })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http-" + r.status))))
+        .then((j) => {
+          if (!j || !j.elements) throw new Error("bad-json");
+          return j;
+        })
+        .finally(() => clearTimeout(tAbort));
+    });
+    let hardTimer;
+    const hardStop = new Promise((_, rej) => {
+      hardTimer = setTimeout(() => rej(new Error("hard-timeout")), 12000);
+    });
+    let oj;
+    try {
+      oj = await Promise.any([Promise.any(attempts), hardStop]);
+    } finally {
+      clearTimeout(hardTimer);
+    }
+    let pts = oj.elements.filter((el) => el.lat != null && el.lon != null);
+    const isInpost = (el) =>
+      /inpost/i.test(
+        [el.tags && el.tags.operator, el.tags && el.tags.brand, el.tags && el.tags.name]
+          .filter(Boolean)
+          .join(" ")
+      );
+    const inpost = pts.filter(isInpost);
+    if (inpost.length) pts = inpost;
+    pts.sort(
+      (a, b) =>
+        (a.lat - geo.lat) ** 2 + (a.lon - geo.lon) ** 2 - ((b.lat - geo.lat) ** 2 + (b.lon - geo.lon) ** 2)
+    );
+    return pts.slice(0, 40);
+  }
+
+  function showCityMap(city) {
+    const box = $("#geoMapBox");
+    if (!box) return;
+    const q = encodeURIComponent("paczkomat InPost " + city);
+    box.innerHTML = `<iframe title="Mapa paczkomatów — ${escapeHtml(city)}" loading="lazy" referrerpolicy="no-referrer" src="https://maps.google.com/maps?q=${q}&z=12&output=embed"></iframe>`;
+    const full = $("#geoMapFull");
+    if (full) full.href = `https://www.google.com/maps/search/${q}`;
+  }
 
   async function searchLockers(cityName) {
     const city = (cityName || "").trim();
@@ -1130,119 +1095,39 @@
       setGeoStatus("Wpisz nazwę miasta 🙂");
       return;
     }
+    /* 1) mapa OD RAZU — bez czekania na cokolwiek */
+    $("#geoMapPanel").hidden = false;
+    showCityMap(city);
+    renderLockersList([], city);
+    setGeoStatus(`Mapa paczkomatów: ${city} 🗺️ Doczytuję listę punktów z adresami…`);
+
+    /* 2) w tle lista punktów (klik = auto-uzupełnienie adresu) */
     if (typeof fetch !== "function") {
-      setGeoStatus(
-        "Ta przeglądarka blokuje pobieranie danych mapy — użyj oficjalnego lokalizatora InPost (link poniżej).",
-        true
-      );
+      setGeoStatus(`Mapa paczkomatów: ${city} 🗺️ Kliknij punkt na mapie i przepisz adres do pola dostawy ✍️`);
       return;
     }
-    const panel = $("#geoMapPanel");
-    panel.hidden = false;
-    showMapLoading(true);
-    setGeoStatus(`Szukam paczkomatów: ${city}… 🔎`);
     try {
-      let geo = localCityLookup(city);
+      const geo = localCityLookup(city) || (await geocodeCity(city));
       if (!geo) {
-        const gRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=pl&q=${encodeURIComponent(city + ", Polska")}`,
-          { headers: { Accept: "application/json" } }
-        );
-        const gj = await gRes.json();
-        if (!gj || !gj.length) {
-          panel.hidden = true;
-          showMapLoading(false);
-          setGeoStatus(`Nie znam miasta „${city}” 🤔 Sprawdź pisownię.`, true);
-          return;
-        }
-        const g0 = gj[0];
-        const [s, n, w, e] = (g0.boundingbox || []).map(Number);
-        geo = { lat: +g0.lat, lon: +g0.lon, name: g0.name || city, bbox: [s, n, w, e] };
-      }
-      lastCity = geo.name;
-      setGeoStatus("Ładuję paczkomaty z mapy… 📦 (2–3 sekundy)");
-      /* mniejszy obszar = szybsze zapytanie: klamrujemy bbox wokół środka */
-      const cl = 0.09;
-      const bs = Math.max(geo.bbox[0], geo.lat - cl);
-      const bn = Math.min(geo.bbox[1], geo.lat + cl);
-      const bw = Math.max(geo.bbox[2], geo.lon - cl * 1.6);
-      const be = Math.min(geo.bbox[3], geo.lon + cl * 1.6);
-      const query = `[out:json][timeout:8];node[amenity=parcel_locker](${bs},${bw},${bn},${be});out body 60;`;
-      /* wszystkie serwery naraz — wygrywa najszybszy (Promise.any) */
-      const attempts = OVERPASS_ENDPOINTS.map((ep) => {
-        const ctrl =
-          typeof AbortController === "function" ? new AbortController() : null;
-        const tAbort = ctrl ? setTimeout(() => ctrl.abort(), 9000) : null;
-        return fetch(ep, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=UTF-8" },
-          body: query,
-          signal: ctrl ? ctrl.signal : undefined,
-        })
-          .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http-" + r.status))))
-          .then((j) => {
-            if (!j || !j.elements) throw new Error("bad-json");
-            return j;
-          })
-          .finally(() => clearTimeout(tAbort));
-      });
-      let hardTimer;
-      const hardStop = new Promise((_, rej) => {
-        hardTimer = setTimeout(() => rej(new Error("hard-timeout")), 12000);
-      });
-      let oj;
-      try {
-        oj = await Promise.any([Promise.any(attempts), hardStop]);
-      } catch (e) {
-        throw new Error("overpass-unreachable");
-      } finally {
-        clearTimeout(hardTimer);
-      }
-      let pts = oj.elements.filter((el) => el.lat != null && el.lon != null);
-      const isInpost = (el) =>
-        /inpost/i.test(
-          [el.tags && el.tags.operator, el.tags && el.tags.brand, el.tags && el.tags.name]
-            .filter(Boolean)
-            .join(" ")
-        );
-      const inpost = pts.filter(isInpost);
-      if (inpost.length) pts = inpost;
-      pts.sort(
-        (a, b) =>
-          (a.lat - geo.lat) ** 2 + (a.lon - geo.lon) ** 2 - ((b.lat - geo.lat) ** 2 + (b.lon - geo.lon) ** 2)
-      );
-      pts = pts.slice(0, 40);
-      lastPts = pts;
-      if (!pts.length) {
-        panel.hidden = true;
-        showMapLoading(false);
-        setGeoStatus(
-          `Brak paczkomatów „${geo.name}” w bazie mapy 😕 Spróbuj większego/sąsiedniego miasta albo użyj lokalizatora InPost poniżej.`,
-          true
-        );
-        renderLockersList([], geo.name);
+        setGeoStatus(`Nie znam miasta „${city}" 🤔 Sprawdź pisownię — mapa pokazuje wyniki dla wpisanej nazwy.`, true);
         return;
       }
-      const plural = pts.length === 1 ? "paczkomat" : pts.length < 5 ? "paczkomaty" : "paczkomatów";
-      setGeoStatus(`Masz ${pts.length} ${plural} — kliknij złotą pinezkę, a adres sam wpadnie do zamówienia 📍`);
-      renderLockersList(pts, geo.name);
-      try {
-        const L = await loadLeaflet();
-        renderLockersMap(L, pts, [geo.lat, geo.lon], geo.name);
-      } catch (e) {
-        showGoogleFallbackMap(geo.name);
+      lastCity = geo.name;
+      const pts = await fetchLockerPoints(geo);
+      lastPts = pts;
+      if (!pts.length) {
+        setGeoStatus("Mapa powyżej pokazuje paczkomaty 🗺️ Kliknij punkt i przepisz adres do pola dostawy ✍️");
+        return;
       }
+      renderLockersList(pts, geo.name);
+      const plural = pts.length === 1 ? "paczkomat" : pts.length < 5 ? "paczkomaty" : "paczkomatów";
+      setGeoStatus(`Masz ${pts.length} ${plural} — kliknij pozycję na liście, a adres SAM wpadnie do zamówienia 📍`);
     } catch (err) {
-      panel.hidden = true;
-      showMapLoading(false);
-      setGeoStatus(
-        "Nie udało się pobrać paczkomatów 📡 (sieć albo blokada przeglądarki). Spróbuj ponownie za chwilę albo użyj lokalizatora InPost poniżej.",
-        true
-      );
+      setGeoStatus("Mapa powyżej pokazuje paczkomaty 🗺️ Listy punktów nie udało się doczytać — kliknij punkt na mapie i przepisz adres do pola dostawy ✍️");
     }
   }
 
-  /* chip „Znajdź paczkomat": panel otwiera się TYLKO gdy jest co pokazać */
+  /* chip „Znajdź paczkomat": otwiera/zamyka panel i szuka dla zapisanego miasta */
   function toggleGeoMap() {
     const panel = $("#geoMapPanel");
     if (!panel) return;

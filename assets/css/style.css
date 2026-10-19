@@ -3022,37 +3022,6 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
   border-color: var(--gold);
   background: rgba(216, 180, 92, 0.08);
 }
-/* popup Leaflet w ciemnej stylistyce */
-.leaflet-container {
-  font-family: var(--font-body);
-}
-.leaflet-popup-content-wrapper {
-  background: var(--card);
-  color: var(--text);
-  border-radius: 12px;
-  box-shadow: var(--shadow-1);
-  border: 1px solid var(--line-strong);
-}
-.leaflet-popup-tip {
-  background: var(--card);
-}
-.leaflet-popup-content {
-  font-size: 12.5px;
-  line-height: 1.5;
-  margin: 10px 14px;
-}
-.geo-pick-note {
-  color: var(--ok);
-  font-weight: 700;
-}
-.leaflet-control-attribution {
-  background: rgba(8, 8, 10, 0.75) !important;
-  color: var(--muted-2) !important;
-  font-size: 9px !important;
-}
-.leaflet-control-attribution a {
-  color: var(--muted) !important;
-}
 @media (max-width: 560px) {
   .geo-search-row {
     flex-direction: column;
@@ -3196,24 +3165,14 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
 }
 
 /* v16 — mapa: overlay ładowania, ciemne tło, link InPost */
-.geo-mapwrap {
-  position: relative;
-}
 .geo-map {
   background: #0c0c10;
 }
-.geo-map-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(12, 12, 16, 0.92);
-  color: var(--gold-soft);
-  font-size: 13px;
-  font-weight: 700;
-  z-index: 500;
-  pointer-events: none;
+#geoMapBox iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 .geo-inpost {
   align-self: flex-start;
