@@ -25,6 +25,8 @@
     search: "",
     sort: "featured",
     payment: "blik",
+    priceMin: null,
+    priceMax: null,
     cart: loadCart(), // { [productId]: qty }
   };
 
@@ -160,6 +162,10 @@
           CAT_NAME[p.category].toLowerCase().includes(q)
       );
     }
+    if (state.priceMin != null)
+      list = list.filter((p) => p.price >= state.priceMin);
+    if (state.priceMax != null)
+      list = list.filter((p) => p.price <= state.priceMax);
     const disc = (p) => 1 - p.price / p.regular;
     switch (state.sort) {
       case "price-asc":
@@ -205,8 +211,12 @@
         </div>`;
       $("#clearFilters").addEventListener("click", () => {
         state.search = "";
+        state.priceMin = null;
+        state.priceMax = null;
         $("#searchInput").value = "";
         $("#searchInputMobile").value = "";
+        if ($("#priceMin")) $("#priceMin").value = "";
+        if ($("#priceMax")) $("#priceMax").value = "";
         setCategory("all");
       });
       return;
@@ -467,6 +477,93 @@
 
   /* ---------------- Product modal ---------------- */
   let modalProduct = null;
+  /* ---------------- Ostatnio oglądane ---------------- */
+  const RECENT_KEY = "zaplecze-recent";
+  function recentGet() {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function recentAdd(id) {
+    let r = recentGet().filter((x) => x !== id);
+    r.unshift(id);
+    r = r.slice(0, 8);
+    try {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(r));
+    } catch (e) {
+      /* tryb prywatny */
+    }
+    renderRecent();
+  }
+  function renderRecent() {
+    const wrap = $("#recentWrap");
+    if (!wrap) return;
+    const items = recentGet().map(productById).filter(Boolean);
+    wrap.hidden = items.length === 0;
+    if (!items.length) return;
+    $("#recentStrip").innerHTML = items
+      .map(
+        (p) => `<button type="button" class="recent-card" data-recent="${p.id}">
+          <img src="${p.images[0]}" alt="" loading="lazy" />
+          <span class="rc-name">${p.name}</span>
+          <span class="rc-price">${money(p.price)}</span>
+        </button>`
+      )
+      .join("");
+    $$("[data-recent]", $("#recentStrip")).forEach((b) =>
+      b.addEventListener("click", () => openModal(b.dataset.recent))
+    );
+  }
+
+  /* ---------------- Modal informacyjny (Jak kupić / Opinie / Płatności) --
+     Sekcje zostają na dole strony, ale treść jest dostępna jednym
+     kliknięciem z hero — bez scrollowania i bez hamburgera. */
+  const INFO_SECTIONS = { jak: "#jak-kupic", opinie: "#opinie", platnosci: "#platnosc" };
+  function openInfoModal(key) {
+    const sec = $(INFO_SECTIONS[key]);
+    if (!sec) return;
+    const src = sec.querySelector(".container") || sec;
+    const body = $("#infoBody");
+    body.innerHTML = src.innerHTML;
+    /* unikamy zduplikowanych id i wymuszamy widoczność animacji reveal */
+    body.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+    body.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+    body.scrollTop = 0;
+    $("#infoModal").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeInfoModal() {
+    const m = $("#infoModal");
+    if (!m) return;
+    m.classList.remove("open");
+    if (!$("#productModal").classList.contains("open"))
+      document.body.style.overflow = "";
+  }
+
+  /* ---------------- Animowane liczniki hero ---------------- */
+  function animateStats() {
+    if (!("requestAnimationFrame" in window)) return;
+    $$(".hero-stats .num").forEach((el) => {
+      const m = el.textContent.trim().match(/^(\d+(?:[.,]\d+)?)(.*)$/);
+      if (!m) return;
+      const target = parseFloat(m[1].replace(",", "."));
+      const suffix = m[2];
+      const dec = (m[1].split(/[.,]/)[1] || "").length;
+      const dur = 1400;
+      let t0 = null;
+      const step = (ts) => {
+        if (t0 == null) t0 = ts;
+        const k = Math.min(1, (ts - t0) / dur);
+        const e = 1 - Math.pow(1 - k, 3);
+        el.textContent = (target * e).toFixed(dec) + suffix;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
   let modalImgIndex = 0;
   let modalQty = 1;
 
@@ -475,6 +572,7 @@
     if (!modalProduct) return;
     modalImgIndex = 0;
     modalQty = 1;
+    recentAdd(id);
     renderModal();
     $("#productModal").classList.add("open");
     document.body.style.overflow = "hidden";
@@ -491,6 +589,16 @@
     const save = p.regular - p.price;
     $("#modalMainImg").src = p.images[modalImgIndex];
     $("#modalMainImg").alt = p.name;
+    $("#modalMainImg").classList.remove("zoom");
+    $("#modalMainImg").style.transformOrigin = "";
+    const hint = $("#galleryHint");
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent =
+        p.images.length > 1
+          ? "👆 Przesuń w bok = kolejne zdjęcie · kliknij = przybliżenie"
+          : "👆 Kliknij zdjęcie, aby przybliżyć";
+    }
 
     $("#modalThumbs").innerHTML =
       p.images.length > 1
@@ -671,57 +779,136 @@
     const use = $("#geoUse");
     const retry = $("#geoRetry");
     const det = $("#ofShipDetails");
+    const panel = $("#geoMapPanel");
     if (hit) {
-      $("#geoChipText").textContent = `📍 Twoja okolica: ${hit.name} (${hit.voiv})`;
+      $("#geoChipText").textContent =
+        hit.km != null
+          ? `📍 Twoja okolica: ${hit.name} (${hit.voiv}) · ~${hit.km} km`
+          : `📍 Twoje miasto: ${hit.name} (${hit.voiv})`;
       chip.hidden = false;
       /* „Wstaw" tylko gdy pole dostawy jest puste — niczego nie nadpisujemy */
       use.hidden = !(det && !det.value.trim());
       if (retry) retry.hidden = true;
     } else {
       chip.hidden = true;
+      if (panel) panel.hidden = true;
       if (retry) retry.hidden = false;
     }
   }
 
+  function populateGeoCities() {
+    const sel = $("#geoCity");
+    if (!sel || sel.options.length > 1) return;
+    (window.PL_CITIES || []).forEach((c, i) => {
+      const o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = `${c[0]} (${c[1]})`;
+      sel.appendChild(o);
+    });
+  }
+
+  /* Czy przeglądarka w ogóle może zapytać o geolokalizację?
+     W ramce podglądu (iframe bez allow="geolocation") Permissions-Policy
+     blokuje API i prompt NIGDY się nie pokaże — stąd „natychmiastowe
+     odrzucenie". Wykrywamy to i dajemy wybór miasta z listy. */
+  function geoPolicyBlocked() {
+    try {
+      if (
+        document.featurePolicy &&
+        typeof document.featurePolicy.allowsFeature === "function"
+      )
+        return !document.featurePolicy.allowsFeature("geolocation");
+    } catch (e) {
+      /* brak wsparcia featurePolicy — próbujemy dalej */
+    }
+    return false;
+  }
+
+  function geoFallback(msg) {
+    toast(msg);
+    const m = $("#geoManual");
+    if (m) {
+      populateGeoCities();
+      m.hidden = false;
+    }
+    renderGeoChip();
+  }
+
   function detectGeo() {
     if (!("geolocation" in navigator) || !navigator.geolocation.getCurrentPosition) {
-      toast("Ta przeglądarka nie wspiera lokalizacji — wpisz miasto ręcznie ✍️");
-      renderGeoChip();
+      geoFallback("Ta przeglądarka nie wspiera lokalizacji — wybierz miasto z listy 👇");
+      return;
+    }
+    if (geoPolicyBlocked()) {
+      geoFallback(
+        window.self !== window.top
+          ? "Strona działa w ramce podglądu, która blokuje pytanie o lokalizację — wybierz miasto z listy 👇"
+          : "Przeglądarka blokuje pytanie o lokalizację — wybierz miasto z listy 👇"
+      );
       return;
     }
     toast("Pytam przeglądarkę o lokalizację… 📍");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const hit = nearestCity(pos.coords.latitude, pos.coords.longitude);
-        if (!hit) {
-          toast("Nie udało się dopasować okolicy 🤔");
-          renderGeoChip();
-          return;
-        }
-        try {
-          localStorage.setItem(GEO_CITY, JSON.stringify(hit));
-        } catch (e) {
-          /* tryb prywatny — działamy dalej bez zapisu */
-        }
-        const det = $("#ofShipDetails");
-        if (det && !det.value.trim()) {
-          det.value = `${hit.name} (${hit.voiv})`;
-          saveOrder({ shipDetails: det.value });
-          updateCheckoutLink();
-        }
-        renderGeoChip();
-        toast(`Twoja okolica: ${hit.name} (${hit.voiv}) 📍 — dane zostały na urządzeniu`);
-      },
-      (err) => {
-        toast(
-          err && err.code === 1
-            ? "Brak zgody na lokalizację — wpisz miasto ręcznie ✍️"
-            : "Nie udało się pobrać lokalizacji 📡 — spróbuj ponownie za chwilę"
+    const onOk = (pos) => {
+      const hit = nearestCity(pos.coords.latitude, pos.coords.longitude);
+      if (!hit) {
+        geoFallback("Nie udało się dopasować okolicy 🤔 — wybierz miasto z listy 👇");
+        return;
+      }
+      try {
+        localStorage.setItem(GEO_CITY, JSON.stringify(hit));
+      } catch (e) {
+        /* tryb prywatny — działamy dalej bez zapisu */
+      }
+      const det = $("#ofShipDetails");
+      if (det && !det.value.trim()) {
+        det.value = `${hit.name} (${hit.voiv})`;
+        saveOrder({ shipDetails: det.value });
+        updateCheckoutLink();
+      }
+      renderGeoChip();
+      toast(`Twoja okolica: ${hit.name} (${hit.voiv}) 📍 — dane zostały na urządzeniu`);
+    };
+    const onErr = (err, wasRetry) => {
+      if (err && err.code === 1) {
+        geoFallback(
+          "Brak zgody na lokalizację ✋ Sprawdź uprawnienia strony (ikona przy adresie → Lokalizacja) albo wybierz miasto z listy 👇"
         );
-        renderGeoChip();
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
-    );
+        return;
+      }
+      /* timeout / niedokładny GPS — jedna próba z pełną dokładnością */
+      if (!wasRetry && err && (err.code === 2 || err.code === 3)) {
+        navigator.geolocation.getCurrentPosition(
+          onOk,
+          (e2) => onErr(e2, true),
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
+        return;
+      }
+      geoFallback("Nie udało się pobrać lokalizacji 📡 — wybierz miasto z listy 👇");
+    };
+    navigator.geolocation.getCurrentPosition(onOk, (e) => onErr(e, false), {
+      enableHighAccuracy: false,
+      timeout: 8000,
+      maximumAge: 300000,
+    });
+  }
+
+  /* Mapa paczkomatów BEZ wychodzenia ze strony (leniwy iframe).
+     Do Google Maps trafia tylko nazwa miasta — nigdy współrzędne. */
+  function toggleGeoMap() {
+    const panel = $("#geoMapPanel");
+    if (!panel) return;
+    const hit = savedCity();
+    if (panel.hidden) {
+      if (!hit) {
+        toast("Najpierw wykryj lub wybierz miasto 📍");
+        return;
+      }
+      const q = encodeURIComponent("paczkomat " + hit.name);
+      $("#geoMapFrame").src = `https://maps.google.com/maps?q=${q}&z=12&output=embed`;
+      $("#geoMapFull").href = `https://www.google.com/maps/search/${q}`;
+    }
+    panel.hidden = !panel.hidden;
   }
 
   /* Pytamy raz, grzecznie, PRZED systemowym promptem */
@@ -858,6 +1045,7 @@
       if (e.key === "Escape") {
         closeModal();
         closeCart();
+        closeInfoModal();
         const gm = $("#geoModal");
         if (gm) gm.classList.remove("open");
       }
@@ -894,6 +1082,100 @@
       });
     }
 
+    /* filtr ceny od–do */
+    const pMin = $("#priceMin");
+    const pMax = $("#priceMax");
+    if (pMin && pMax) {
+      const onPriceInput = () => {
+        state.priceMin = pMin.value === "" ? null : Math.max(0, +pMin.value || 0);
+        state.priceMax = pMax.value === "" ? null : Math.max(0, +pMax.value || 0);
+        renderGrid();
+      };
+      pMin.addEventListener("input", onPriceInput);
+      pMax.addEventListener("input", onPriceInput);
+      $("#priceClear").addEventListener("click", () => {
+        pMin.value = "";
+        pMax.value = "";
+        state.priceMin = null;
+        state.priceMax = null;
+        renderGrid();
+      });
+    }
+
+    /* ostatnio oglądane */
+    if ($("#recentClear"))
+      $("#recentClear").addEventListener("click", () => {
+        try {
+          localStorage.removeItem(RECENT_KEY);
+        } catch (e) {}
+        renderRecent();
+      });
+
+    /* szybki dostęp: Jak kupić / Opinie / Płatności (modale z hero) */
+    if ($("#hqJak")) $("#hqJak").addEventListener("click", () => openInfoModal("jak"));
+    if ($("#hqOpinie")) $("#hqOpinie").addEventListener("click", () => openInfoModal("opinie"));
+    if ($("#hqPlatnosci")) $("#hqPlatnosci").addEventListener("click", () => openInfoModal("platnosci"));
+    if ($("#infoClose")) $("#infoClose").addEventListener("click", closeInfoModal);
+    if ($("#infoBackdrop")) $("#infoBackdrop").addEventListener("click", closeInfoModal);
+
+    /* galeria produktu: swipe + zoom kliknięciem */
+    const mmWrap = $("#modalMainImgWrap");
+    if (mmWrap) {
+      let touchX0 = null;
+      mmWrap.addEventListener(
+        "touchstart",
+        (e) => {
+          touchX0 = e.touches && e.touches[0] ? e.touches[0].clientX : null;
+        },
+        { passive: true }
+      );
+      mmWrap.addEventListener("touchend", (e) => {
+        if (touchX0 == null || !e.changedTouches || !e.changedTouches[0]) return;
+        const dx = e.changedTouches[0].clientX - touchX0;
+        touchX0 = null;
+        if (Math.abs(dx) < 40 || !modalProduct) return;
+        const n = modalProduct.images.length;
+        if (n < 2) return;
+        modalImgIndex = (modalImgIndex + (dx < 0 ? 1 : n - 1)) % n;
+        renderModal();
+      });
+      const mmImg = $("#modalMainImg");
+      mmImg.style.cursor = "zoom-in";
+      mmImg.addEventListener("click", (e) => {
+        mmImg.classList.toggle("zoom");
+        if (mmImg.classList.contains("zoom")) {
+          const r = mmImg.getBoundingClientRect();
+          if (r.width && r.height) {
+            mmImg.style.transformOrigin = `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}% ${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`;
+          }
+          mmImg.style.cursor = "zoom-out";
+        } else {
+          mmImg.style.transformOrigin = "";
+          mmImg.style.cursor = "zoom-in";
+        }
+      });
+    }
+
+    /* geolokalizacja: wybór miasta z listy + mapa paczkomatów */
+    if ($("#geoCity"))
+      $("#geoCity").addEventListener("change", () => {
+        const c = (window.PL_CITIES || [])[+$("#geoCity").value];
+        if (!c) return;
+        const hit = { name: c[0], voiv: c[1], km: null };
+        try {
+          localStorage.setItem(GEO_CITY, JSON.stringify(hit));
+        } catch (e) {}
+        const det = $("#ofShipDetails");
+        if (det && !det.value.trim()) {
+          det.value = `${hit.name} (${hit.voiv})`;
+          saveOrder({ shipDetails: det.value });
+          updateCheckoutLink();
+        }
+        renderGeoChip();
+        toast(`Ustawiono: ${hit.name} 📍`);
+      });
+    if ($("#geoMapBtn")) $("#geoMapBtn").addEventListener("click", toggleGeoMap);
+
     /* reveal on scroll */
     const io =
       "IntersectionObserver" in window
@@ -917,6 +1199,7 @@
 
     /* stats */
     $("#statProducts").textContent = DATA.products.length + "+";
+    animateStats();
   }
 
   function observeReveals() {
@@ -931,6 +1214,8 @@
   renderReviews();
   renderPayments();
   renderCart();
+  renderRecent();
+  populateGeoCities();
   initUI();
   observeReveals();
 

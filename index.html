@@ -13,7 +13,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308080a'/%3E%3Ctext x='32' y='43' font-family='Arial Black, sans-serif' font-size='26' font-weight='900' fill='%23d8b45c' text-anchor='middle'%3EZR%3C/text%3E%3C/svg%3E" />
   <link rel="preload" href="assets/fonts/syne-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261019i" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019j" />
 </head>
 <body id="top">
 
@@ -78,6 +78,11 @@
             <a class="btn" href="#sklep">Zobacz ofertę</a>
             <a class="btn btn-ghost" href="#platnosc">Metody płatności</a>
           </div>
+          <div class="hero-quick">
+            <button type="button" class="hq-btn" id="hqJak">📖 Jak kupić</button>
+            <button type="button" class="hq-btn" id="hqOpinie">⭐ Opinie klientów</button>
+            <button type="button" class="hq-btn" id="hqPlatnosci">💳 Płatności i zasady</button>
+          </div>
           <div class="hero-stats">
             <div><div class="num" id="statProducts">40+</div><div class="lbl">produktów w ofercie</div></div>
             <div><div class="num">24 h</div><div class="lbl">wysyłka InPost</div></div>
@@ -128,8 +133,23 @@
           </div>
         </div>
 
+        <div class="recent-wrap" id="recentWrap" hidden>
+          <div class="recent-head">
+            <h3>👁️ Ostatnio oglądane</h3>
+            <button type="button" class="recent-clear" id="recentClear">Wyczyść</button>
+          </div>
+          <div class="recent-strip" id="recentStrip"></div>
+        </div>
+
         <div class="toolbar reveal">
           <div class="chips" id="filterChips" role="tablist" aria-label="Filtry kategorii"></div>
+          <div class="price-filter">
+            <label for="priceMin">Cena zł</label>
+            <input type="number" id="priceMin" placeholder="od" min="0" step="10" inputmode="numeric" aria-label="Cena od" />
+            <span class="pf-dash" aria-hidden="true">—</span>
+            <input type="number" id="priceMax" placeholder="do" min="0" step="10" inputmode="numeric" aria-label="Cena do" />
+            <button type="button" class="pf-clear" id="priceClear" aria-label="Wyczyść filtr cen">✕</button>
+          </div>
           <div class="sort-wrap">
             <label for="sortSelect">Sortuj</label>
             <select id="sortSelect">
@@ -296,11 +316,23 @@
               <span class="geo-chip-text" id="geoChipText"></span>
               <span class="geo-chip-btns">
                 <button type="button" class="geo-btn" id="geoUse" hidden>Wstaw</button>
-                <a class="geo-btn ghost" id="geoMap" href="https://inpost.pl/znajdz-punkt" target="_blank" rel="noopener">Mapa InPost ↗</a>
+                <button type="button" class="geo-btn ghost" id="geoMapBtn">🗺️ Paczkomaty</button>
               </span>
+            </div>
+            <div class="geo-mappanel" id="geoMapPanel" hidden>
+              <iframe id="geoMapFrame" title="Mapa paczkomatów w Twojej okolicy" loading="lazy" referrerpolicy="no-referrer" src="about:blank"></iframe>
+              <div class="geo-maplinks">
+                <a id="geoMapFull" href="https://www.google.com/maps" target="_blank" rel="noopener">Pełny ekran ↗</a>
+                <a href="https://inpost.pl/znajdz-punkt" target="_blank" rel="noopener">Lokalizator InPost ↗</a>
+                <span class="geo-mapnote">Mapa dostaje tylko nazwę miasta — nigdy Twoje współrzędne.</span>
+              </div>
             </div>
             <textarea id="ofNotes" rows="2" placeholder="Uwagi do zamówienia (opcjonalnie)"></textarea>
             <button type="button" class="geo-retry" id="geoRetry" hidden>📍 Wykryj moją okolicę — dane zostają na urządzeniu</button>
+            <div class="geo-manual" id="geoManual" hidden>
+              <label for="geoCity">…albo wybierz miasto z listy (bez lokalizacji):</label>
+              <select id="geoCity"><option value="">— wybierz miasto —</option></select>
+            </div>
           </div>
         </div>
       </div>
@@ -320,7 +352,8 @@
     <div class="modal-box">
       <button class="icon-btn modal-close" id="modalClose" aria-label="Zamknij okno">✕</button>
       <div class="modal-gallery">
-        <div class="modal-main-img"><img id="modalMainImg" src="" alt="" /></div>
+        <div class="modal-main-img" id="modalMainImgWrap"><img id="modalMainImg" src="" alt="" /></div>
+        <p class="gallery-hint" id="galleryHint" hidden></p>
         <div class="modal-thumbs" id="modalThumbs"></div>
       </div>
       <div class="modal-info" id="modalInfo"></div>
@@ -337,12 +370,21 @@
       <button class="icon-btn geo-x" id="geoClose" aria-label="Zamknij">✕</button>
       <div class="geo-ico">📍</div>
       <h3 id="geoTitle">Podpowiedzieć najbliższy paczkomat?</h3>
-      <p class="geo-p">Wykryjemy Twoją okolicę i od razu podpowiemy miasto w polu dostawy. Konkretny paczkomat wybierzesz jednym kliknięciem na mapie InPost.</p>
+      <p class="geo-p">Wykryjemy Twoją okolicę i podpowiemy miasto w polu dostawy, a mapę z paczkomatami pokażemy <b>bezpośrednio w koszyku</b> — bez wychodzenia na osobną stronę.</p>
       <p class="geo-priv">🔒 <b>Lokalizacja zostaje na Twoim urządzeniu.</b> Współrzędne nie są nigdzie przesyłane ani zapisywane na żadnym serwerze — porównujemy je wyłącznie lokalnie z listą polskich miast. Wynik możesz zmienić lub usunąć w każdej chwili.</p>
       <div class="geo-actions">
         <button class="btn btn-block" id="geoAllow">Tak, wykryj okolicę</button>
         <button class="btn btn-ghost btn-block" id="geoDeny">Nie teraz</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: Jak kupić / Opinie / Płatności ================= -->
+  <div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-label="Informacje">
+    <div class="modal-backdrop" id="infoBackdrop"></div>
+    <div class="modal-box info-box">
+      <button class="icon-btn modal-close" id="infoClose" aria-label="Zamknij okno">✕</button>
+      <div class="info-body" id="infoBody"></div>
     </div>
   </div>
 
@@ -369,7 +411,7 @@
     </div>
   </nav>
 
-  <script src="assets/js/data.js?v=20261019i"></script>
-  <script src="assets/js/app.js?v=20261019i"></script>
+  <script src="assets/js/data.js?v=20261019j"></script>
+  <script src="assets/js/app.js?v=20261019j"></script>
 </body>
 </html>

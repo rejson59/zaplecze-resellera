@@ -2611,3 +2611,285 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
   border-color: var(--gold);
   color: var(--gold-soft);
 }
+
+/* ============================================================
+   v12 — hero quick-access, ostatnio oglądane, filtr ceny,
+   galeria swipe/zoom, modal info, mapa paczkomatów w koszyku
+   ============================================================ */
+.hero-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.hq-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+.hq-btn:hover {
+  border-color: var(--gold);
+  background: rgba(216, 180, 92, 0.08);
+}
+.hq-btn:active {
+  transform: scale(0.96);
+}
+/* modal informacyjny */
+.info-box {
+  max-width: 720px;
+  width: 100%;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.info-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 34px 28px 30px;
+}
+.info-body .section {
+  padding: 0;
+}
+.info-body .section-head {
+  margin-bottom: 18px;
+}
+.info-body .review-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (max-width: 560px) {
+  .info-body {
+    padding: 26px 18px 22px;
+  }
+  .info-body .review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ostatnio oglądane */
+.recent-wrap {
+  margin: 6px 0 18px;
+}
+.recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.recent-head h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+}
+.recent-clear {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.recent-clear:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
+.recent-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.recent-card {
+  flex: none;
+  width: 128px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.recent-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+.recent-card img {
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  margin-bottom: 7px;
+}
+.rc-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  min-height: 2.7em;
+}
+.rc-price {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--gold-soft);
+}
+/* filtr ceny */
+.price-filter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.price-filter label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.price-filter input {
+  width: 72px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  transition: border-color 0.2s ease;
+}
+.price-filter input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.price-filter input::-webkit-outer-spin-button,
+.price-filter input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.price-filter input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.pf-dash {
+  color: var(--muted);
+  font-size: 12px;
+}
+.pf-clear {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  flex: none;
+}
+.pf-clear:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
+@media (max-width: 560px) {
+  .price-filter {
+    order: 3;
+    width: 100%;
+  }
+  .price-filter input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+}
+/* galeria: zoom + hint */
+.modal-main-img {
+  overflow: hidden;
+}
+.modal-main-img img {
+  transition: transform 0.28s var(--ease-glide, ease);
+  cursor: zoom-in;
+}
+.modal-main-img img.zoom {
+  transform: scale(1.9);
+  cursor: zoom-out;
+}
+.gallery-hint {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted-2);
+  margin-top: 8px;
+}
+/* mapa paczkomatów w koszyku */
+.geo-mappanel {
+  border: 1px solid rgba(216, 180, 92, 0.3);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card);
+}
+.geo-mappanel iframe {
+  display: block;
+  width: 100%;
+  height: 260px;
+  border: 0;
+}
+.geo-maplinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.geo-maplinks a {
+  color: var(--gold-soft);
+  font-weight: 700;
+  text-decoration: none;
+}
+.geo-maplinks a:hover {
+  text-decoration: underline;
+}
+.geo-mapnote {
+  flex-basis: 100%;
+  color: var(--muted-2);
+  font-size: 11px;
+  line-height: 1.45;
+}
+/* ręczny wybór miasta */
+.geo-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.geo-manual label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.geo-manual select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
