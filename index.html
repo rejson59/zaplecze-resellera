@@ -13,7 +13,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308080a'/%3E%3Ctext x='32' y='43' font-family='Arial Black, sans-serif' font-size='26' font-weight='900' fill='%23d8b45c' text-anchor='middle'%3EZR%3C/text%3E%3C/svg%3E" />
   <link rel="preload" href="assets/fonts/syne-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261019m" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019n" />
 </head>
 <body id="top">
 
@@ -333,12 +333,15 @@
                 <button type="button" class="btn btn-sm" id="geoSearchBtn">🔎 Szukaj paczkomatu</button>
               </div>
               <p class="geo-status" id="geoStatus" hidden></p>
+              <a class="geo-inpost" href="https://inpost.pl/znajdz-punkt" target="_blank" rel="noopener">Nie znalazłeś? Oficjalny lokalizator InPost ↗</a>
             </div>
             <div class="geo-mappanel" id="geoMapPanel" hidden>
-              <div class="geo-map" id="geoLeaflet"></div>
+              <div class="geo-mapwrap">
+                <div class="geo-map" id="geoLeaflet"></div>
+                <div class="geo-map-loading" id="geoMapLoading" hidden>🗺️ Ładowanie mapy…</div>
+              </div>
               <div class="geo-list" id="geoPointList" hidden></div>
               <div class="geo-maplinks">
-                <a href="https://inpost.pl/znajdz-punkt" target="_blank" rel="noopener">Lokalizator InPost ↗</a>
                 <span class="geo-mapnote">🔒 Do wyszukiwarki trafia tylko nazwa miasta, którą wpisujesz — Twoje współrzędne zostają na urządzeniu.</span>
               </div>
             </div>
@@ -450,7 +453,7 @@
     </div>
   </nav>
 
-  <script src="assets/js/data.js?v=20261019m"></script>
-  <script src="assets/js/app.js?v=20261019m"></script>
+  <script src="assets/js/data.js?v=20261019n"></script>
+  <script src="assets/js/app.js?v=20261019n"></script>
 </body>
 </html>
