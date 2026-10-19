@@ -13,7 +13,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308080a'/%3E%3Ctext x='32' y='43' font-family='Arial Black, sans-serif' font-size='26' font-weight='900' fill='%23d8b45c' text-anchor='middle'%3EZR%3C/text%3E%3C/svg%3E" />
   <link rel="preload" href="assets/fonts/syne-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261019h" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019i" />
 </head>
 <body id="top">
 
@@ -292,7 +292,15 @@
               <option value="Odbiór osobisty">Odbiór osobisty</option>
             </select>
             <input id="ofShipDetails" type="text" placeholder="Paczkomat: numer + adres" autocomplete="off" />
+            <div class="geo-chip" id="geoChip" hidden>
+              <span class="geo-chip-text" id="geoChipText"></span>
+              <span class="geo-chip-btns">
+                <button type="button" class="geo-btn" id="geoUse" hidden>Wstaw</button>
+                <a class="geo-btn ghost" id="geoMap" href="https://inpost.pl/znajdz-punkt" target="_blank" rel="noopener">Mapa InPost ↗</a>
+              </span>
+            </div>
             <textarea id="ofNotes" rows="2" placeholder="Uwagi do zamówienia (opcjonalnie)"></textarea>
+            <button type="button" class="geo-retry" id="geoRetry" hidden>📍 Wykryj moją okolicę — dane zostają na urządzeniu</button>
           </div>
         </div>
       </div>
@@ -322,6 +330,22 @@
   <!-- ================= TOASTS ================= -->
   <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 
+  <!-- ================= GEO: uprzejme pytanie o lokalizację ================= -->
+  <div class="modal" id="geoModal" role="dialog" aria-modal="true" aria-labelledby="geoTitle">
+    <div class="geo-backdrop" id="geoBackdrop"></div>
+    <div class="modal-box geo-box">
+      <button class="icon-btn geo-x" id="geoClose" aria-label="Zamknij">✕</button>
+      <div class="geo-ico">📍</div>
+      <h3 id="geoTitle">Podpowiedzieć najbliższy paczkomat?</h3>
+      <p class="geo-p">Wykryjemy Twoją okolicę i od razu podpowiemy miasto w polu dostawy. Konkretny paczkomat wybierzesz jednym kliknięciem na mapie InPost.</p>
+      <p class="geo-priv">🔒 <b>Lokalizacja zostaje na Twoim urządzeniu.</b> Współrzędne nie są nigdzie przesyłane ani zapisywane na żadnym serwerze — porównujemy je wyłącznie lokalnie z listą polskich miast. Wynik możesz zmienić lub usunąć w każdej chwili.</p>
+      <div class="geo-actions">
+        <button class="btn btn-block" id="geoAllow">Tak, wykryj okolicę</button>
+        <button class="btn btn-ghost btn-block" id="geoDeny">Nie teraz</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MOBILE BOTTOM BAR ================= -->
   <nav class="bottom-bar" aria-label="Nawigacja dolna">
     <div class="bottom-bar-inner">
@@ -345,7 +369,7 @@
     </div>
   </nav>
 
-  <script src="assets/js/data.js?v=20261019h"></script>
-  <script src="assets/js/app.js?v=20261019h"></script>
+  <script src="assets/js/data.js?v=20261019i"></script>
+  <script src="assets/js/app.js?v=20261019i"></script>
 </body>
 </html>

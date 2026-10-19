@@ -453,6 +453,7 @@
   /* ---------------- Cart open/close ---------------- */
   function openCart() {
     $("#cartDrawer").classList.add("open");
+    maybeAskGeo();
     $("#cartDrawer").setAttribute("aria-hidden", "false");
     $("#overlay").classList.add("show");
     document.body.style.overflow = "hidden";
@@ -630,6 +631,111 @@
     toast("Gotowa wiadomość czeka w czacie @Xinekx — kliknij Wyślij 📩");
   }
 
+  /* ---------------- Geolokalizacja — najbliższa okolica (100% lokalnie) --
+     Współrzędne z GPS porównujemy wyłącznie w przeglądarce z listą
+     window.PL_CITIES (haversine). Nic nie wychodzi na zewnątrz. */
+  const GEO_ASKED = "zaplecze-geo-asked";
+  const GEO_CITY = "zaplecze-geo-city";
+
+  function nearestCity(lat, lon) {
+    let best = null;
+    let bestD = Infinity;
+    const rad = Math.PI / 180;
+    (window.PL_CITIES || []).forEach((c) => {
+      const dLat = (c[2] - lat) * rad;
+      const dLon = (c[3] - lon) * rad;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat * rad) * Math.cos(c[2] * rad) * Math.sin(dLon / 2) ** 2;
+      const dist = 2 * 6371 * Math.asin(Math.sqrt(a));
+      if (dist < bestD) {
+        bestD = dist;
+        best = c;
+      }
+    });
+    return best ? { name: best[0], voiv: best[1], km: Math.round(bestD) } : null;
+  }
+
+  function savedCity() {
+    try {
+      return JSON.parse(localStorage.getItem(GEO_CITY)) || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function renderGeoChip() {
+    const chip = $("#geoChip");
+    if (!chip) return;
+    const hit = savedCity();
+    const use = $("#geoUse");
+    const retry = $("#geoRetry");
+    const det = $("#ofShipDetails");
+    if (hit) {
+      $("#geoChipText").textContent = `📍 Twoja okolica: ${hit.name} (${hit.voiv})`;
+      chip.hidden = false;
+      /* „Wstaw" tylko gdy pole dostawy jest puste — niczego nie nadpisujemy */
+      use.hidden = !(det && !det.value.trim());
+      if (retry) retry.hidden = true;
+    } else {
+      chip.hidden = true;
+      if (retry) retry.hidden = false;
+    }
+  }
+
+  function detectGeo() {
+    if (!("geolocation" in navigator) || !navigator.geolocation.getCurrentPosition) {
+      toast("Ta przeglądarka nie wspiera lokalizacji — wpisz miasto ręcznie ✍️");
+      renderGeoChip();
+      return;
+    }
+    toast("Pytam przeglądarkę o lokalizację… 📍");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const hit = nearestCity(pos.coords.latitude, pos.coords.longitude);
+        if (!hit) {
+          toast("Nie udało się dopasować okolicy 🤔");
+          renderGeoChip();
+          return;
+        }
+        try {
+          localStorage.setItem(GEO_CITY, JSON.stringify(hit));
+        } catch (e) {
+          /* tryb prywatny — działamy dalej bez zapisu */
+        }
+        const det = $("#ofShipDetails");
+        if (det && !det.value.trim()) {
+          det.value = `${hit.name} (${hit.voiv})`;
+          saveOrder({ shipDetails: det.value });
+          updateCheckoutLink();
+        }
+        renderGeoChip();
+        toast(`Twoja okolica: ${hit.name} (${hit.voiv}) 📍 — dane zostały na urządzeniu`);
+      },
+      (err) => {
+        toast(
+          err && err.code === 1
+            ? "Brak zgody na lokalizację — wpisz miasto ręcznie ✍️"
+            : "Nie udało się pobrać lokalizacji 📡 — spróbuj ponownie za chwilę"
+        );
+        renderGeoChip();
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+    );
+  }
+
+  /* Pytamy raz, grzecznie, PRZED systemowym promptem */
+  function maybeAskGeo() {
+    const modal = $("#geoModal");
+    if (!modal) return;
+    if (!localStorage.getItem(GEO_ASKED) && !savedCity()) {
+      localStorage.setItem(GEO_ASKED, "1");
+      modal.classList.add("open");
+    } else {
+      renderGeoChip();
+    }
+  }
+
   /* ---------------- UI glue ---------------- */
   function initUI() {
     /* header scroll + pasek postępu */
@@ -752,8 +858,41 @@
       if (e.key === "Escape") {
         closeModal();
         closeCart();
+        const gm = $("#geoModal");
+        if (gm) gm.classList.remove("open");
       }
     });
+
+    /* geolokalizacja: przyciski pytania + ponowna próba + wstawienie miasta */
+    const geoModal = $("#geoModal");
+    if (geoModal) {
+      const closeGeo = () => {
+        geoModal.classList.remove("open");
+        renderGeoChip();
+      };
+      $("#geoClose").addEventListener("click", closeGeo);
+      $("#geoBackdrop").addEventListener("click", closeGeo);
+      $("#geoDeny").addEventListener("click", () => {
+        closeGeo();
+        toast("Jasne — dane wpiszesz ręcznie ✍️");
+      });
+      $("#geoAllow").addEventListener("click", () => {
+        geoModal.classList.remove("open");
+        detectGeo();
+      });
+      $("#geoRetry").addEventListener("click", detectGeo);
+      $("#geoUse").addEventListener("click", () => {
+        const hit = savedCity();
+        const det = $("#ofShipDetails");
+        if (hit && det) {
+          det.value = `${hit.name} (${hit.voiv})`;
+          saveOrder({ shipDetails: det.value });
+          updateCheckoutLink();
+          renderGeoChip();
+          toast("Okolica wstawiona do dostawy 📍");
+        }
+      });
+    }
 
     /* reveal on scroll */
     const io =

@@ -2492,3 +2492,122 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     gap: 18px;
   }
 }
+
+/* ============================================================
+   v11 — geolokalizacja: modal pytania + chip okolicy
+   ============================================================ */
+.geo-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 4, 6, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.geo-box {
+  position: relative;
+  max-width: 430px;
+  width: 100%;
+  text-align: center;
+  padding: 30px 26px 26px;
+}
+.geo-x {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.geo-ico {
+  font-size: 40px;
+  margin-bottom: 8px;
+  animation: riseIn 0.7s var(--ease-glide) both;
+}
+.geo-box h3 {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  animation: riseIn 0.7s var(--ease-glide) 0.06s both;
+}
+.geo-p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  animation: riseIn 0.7s var(--ease-glide) 0.12s both;
+}
+.geo-priv {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted-2);
+  text-align: left;
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.22);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  animation: riseIn 0.7s var(--ease-glide) 0.18s both;
+}
+.geo-priv b {
+  color: var(--ok);
+}
+.geo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: riseIn 0.7s var(--ease-glide) 0.24s both;
+}
+/* chip wykrytej okolicy w formularzu */
+.geo-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: rgba(216, 180, 92, 0.07);
+  border: 1px solid rgba(216, 180, 92, 0.3);
+  border-radius: 12px;
+  padding: 9px 12px;
+}
+.geo-chip-btns {
+  display: flex;
+  gap: 6px;
+}
+.geo-btn {
+  border: 1px solid rgba(216, 180, 92, 0.45);
+  background: rgba(216, 180, 92, 0.12);
+  color: var(--gold-soft);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.geo-btn:active {
+  transform: scale(0.95);
+}
+.geo-btn.ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--muted);
+}
+.geo-retry {
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.geo-retry:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
