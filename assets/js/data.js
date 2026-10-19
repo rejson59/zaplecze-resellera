@@ -535,6 +535,12 @@ window.STORE_DATA = {
       author: "Reseller · perfumy",
       stars: 5,
     },
+    {
+      image: "podziekowanie-nr4.jpg",
+      quote: "Legit, dzięki mordzia 🙏",
+      author: "Klient · zamówienie przez Telegram",
+      stars: 5,
+    },
   ],
 
   /* Metody płatności — treść zgodna z informacją od sprzedawcy */

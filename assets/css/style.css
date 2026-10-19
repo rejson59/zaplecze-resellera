@@ -491,7 +491,7 @@ h1, h2, h3, h4 {
   }
 }
 .hero h1 {
-  font-size: clamp(40px, 7.2vw, 84px);
+  font-size: clamp(34px, 7.2vw, 84px);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -1186,8 +1186,8 @@ h1, h2, h3, h4 {
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
-  gap: 34px;
+  grid-template-columns: 1.5fr repeat(4, 1fr);
+  gap: 30px;
   padding-bottom: 40px;
   border-bottom: 1px solid var(--line);
 }
@@ -1908,5 +1908,193 @@ h1, h2, h3, h4 {
   }
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* ============================================================
+   Poprawki responsywności + dodatkowe animacje (v2)
+   ============================================================ */
+
+/* Kotwice nie chowają się pod fixed headerem */
+html {
+  scroll-padding-top: calc(var(--header-h) + 14px);
+}
+
+/* Pasek postępu przewijania pod headerem */
+.scroll-progress {
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold), var(--gold-soft));
+  transform: scaleX(0);
+  transform-origin: left;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Notka "strona w budowie" w koszyku */
+.cart-notice {
+  margin: 14px 22px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(216, 180, 92, 0.55);
+  background: rgba(216, 180, 92, 0.08);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.cart-notice b {
+  color: var(--gold-soft);
+}
+.cart-notice a {
+  color: var(--gold-soft);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Wejście kart produktów (stagger przez --d z JS) */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+.p-card {
+  animation: cardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Marquee staje po najechaniu */
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Subtelny połysk przycisków */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+.btn:hover::after {
+  left: 120%;
+}
+
+/* Bezpieczne zawijanie długich nazw w koszyku */
+.cart-item > div {
+  min-width: 0;
+}
+.ci-name {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Doprecyzowanie breakpointów ---------- */
+@media (max-width: 1200px) {
+  .search-box input {
+    width: 160px;
+  }
+}
+@media (max-width: 1080px) {
+  .hero-collage {
+    margin-inline: auto;
+    width: 100%;
+  }
+}
+@media (max-width: 560px) {
+  .container {
+    width: min(var(--container), 100% - 28px);
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .modal {
+    padding: 12px;
+  }
+  .modal-info {
+    padding: 22px 18px;
+  }
+  .search-box input,
+  .sort-wrap select {
+    font-size: 16px; /* iOS nie zoomuje po focusie */
+  }
+  .cart-item {
+    grid-template-columns: 62px 1fr auto;
+    gap: 10px;
+  }
+  .cart-item img {
+    width: 62px;
+    height: 72px;
+  }
+  .ci-name {
+    font-size: 12.5px;
+  }
+  .cart-notice {
+    margin: 12px 16px 0;
+  }
+  .cart-items {
+    padding: 14px 16px;
+  }
+  .cart-foot {
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 400px) {
+  .logo {
+    font-size: 12.5px;
+  }
+  .header-inner {
+    gap: 10px;
+  }
+  .p-badge {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+  .p-discount {
+    font-size: 10.5px;
+    padding: 4px 8px;
+  }
+  .collage-tag {
+    padding: 8px 12px;
+  }
+  .collage-tag .t2 {
+    font-size: 15px;
+  }
+  .p-price {
+    font-size: 16px;
+  }
+  .hero-stats {
+    gap: 14px 24px;
+  }
+}
+/* Telefony w poziomie (niski viewport) — mniej dekoracji, więcej treści */
+@media (max-height: 520px) and (orientation: landscape) {
+  .hero {
+    padding-top: calc(var(--header-h) + 24px);
+  }
+  .hero-collage {
+    display: none;
+  }
+  .hero-stats {
+    margin-top: 20px;
+  }
+  .bottom-bar {
+    display: none;
+  }
+  body {
+    padding-bottom: 0;
   }
 }

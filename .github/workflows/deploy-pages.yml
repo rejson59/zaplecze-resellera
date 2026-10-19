@@ -32,6 +32,7 @@ jobs:
           cp -r assets _site/
           cp IMG_*.jpg _site/
           cp zestaw-lego-*.jpg _site/
+          cp podziekowanie-nr4.jpg _site/
           ls -la _site | head -20
 
       - name: Setup Pages

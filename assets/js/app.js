@@ -213,10 +213,10 @@
     }
 
     grid.innerHTML = list
-      .map((p) => {
+      .map((p, i) => {
         const off = Math.round((1 - p.price / p.regular) * 100);
         return `
-        <article class="p-card reveal in" data-id="${p.id}">
+        <article class="p-card" style="--d:${Math.min(i, 11) * 45}ms" data-id="${p.id}">
           <div class="p-media" data-open="${p.id}" role="button" tabindex="0"
                aria-label="Zobacz ${p.name}">
             ${p.badge ? `<span class="p-badge">${p.badge}</span>` : ""}
@@ -560,27 +560,23 @@
     }, 2600);
   }
 
-  /* ---------------- Checkout ---------------- */
-  function checkout() {
-    const entries = cartEntries();
-    if (!entries.length) return;
-    const t = cartTotals();
-    const items = entries
-      .map((e) => `${e.qty}× ${e.product.name}`)
-      .join(", ");
-    state.cart = {};
-    saveCart();
-    renderCart();
-    closeCart();
-    toast(`Zamówienie przyjęte: ${items}. Razem ${money(t.total)} — szczegóły na priv.`);
+  /* ---------------- Checkout (Telegram) ----------------
+     Strona jest w budowie — zamówienie domykamy na priv via Telegram. */
+  function checkoutNotice() {
+    toast("Otwieram Telegram @Xinekx — dokończ zamówienie na priv 📩");
   }
 
   /* ---------------- UI glue ---------------- */
   function initUI() {
-    /* header scroll */
+    /* header scroll + pasek postępu */
     const header = $("#siteHeader");
-    const onScroll = () =>
+    const progress = $("#scrollProgress");
+    const onScroll = () => {
       header.classList.toggle("scrolled", window.scrollY > 12);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = max > 0 ? window.scrollY / max : 0;
+      progress.style.transform = `scaleX(${Math.min(1, Math.max(0, ratio))})`;
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
@@ -625,7 +621,7 @@
     $("#bbCart").addEventListener("click", openCart);
     $("#cartClose").addEventListener("click", closeCart);
     $("#overlay").addEventListener("click", closeCart);
-    $("#checkoutBtn").addEventListener("click", checkout);
+    $("#checkoutBtn").addEventListener("click", checkoutNotice);
 
     /* modal */
     $("#modalClose").addEventListener("click", closeModal);

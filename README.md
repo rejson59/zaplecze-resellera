@@ -54,6 +54,7 @@ Każda karta produktu pokazuje **cenę promocyjną oraz przekreśloną cenę reg
 - responsywny grid produktów z filtrami kategorii, szukajką i sortowaniem (cena / przecena / nazwa),
 - szybki podgląd produktu (modal z galerią zdjęć),
 - koszyk (drawer) z zapisem w `localStorage`, ilościami, metodami płatności i podsumowaniem,
+  notką „strona w budowie” i przekierowaniem zamówień na Telegram **@Xinekx**,
 - sekcje: hero z kolażem, marquee marek, kategorie, jak kupić, opinie klientów (social proof), footer,
 - dolny pasek nawigacji na mobile, menu burger, toasty, animacje reveal-on-scroll,
 - fonty i ikony bundle'owane lokalnie — strona działa offline / bez CDN.
