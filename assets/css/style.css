@@ -2188,3 +2188,47 @@ h1, h2, h3, h4 {
     letter-spacing: 0.08em;
   }
 }
+
+/* ============================================================
+   v6 — słowa zawsze w całości (bez przecinania i bez ucinania)
+   ============================================================ */
+h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
+  overflow-wrap: normal;
+}
+.ci-name {
+  overflow-wrap: break-word; /* tylko długie nazwy w koszyku */
+}
+.hero h1 {
+  font-size: clamp(26px, 8.5vw, 84px);
+}
+.hero-lead {
+  font-size: 15px;
+}
+@media (max-width: 560px) {
+  /* nazwy kategorii: węższy font bezszeryfowy, żeby wchodziły w całości */
+  .cat-info h3 {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .p-name {
+    font-size: 12.5px;
+    overflow-wrap: break-word;
+  }
+  .hero-stats .lbl {
+    font-size: 10px;
+  }
+}
+@media (max-width: 400px) {
+  .logo {
+    font-size: 11px;
+  }
+  .logo .tm {
+    display: none;
+  }
+  .header-inner {
+    width: calc(100% - 24px);
+    gap: 8px;
+  }
+}
