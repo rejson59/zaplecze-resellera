@@ -604,7 +604,14 @@
   }
 
   function checkoutNotice() {
-    toast("Otwieram Telegram z gotową wiadomością zamówienia 📩");
+    const entries = cartEntries();
+    if (entries.length) {
+      const msg = buildOrderMessage(entries, cartTotals());
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(msg).catch(() => {});
+      }
+    }
+    toast("Masz zamówienie w schowku — w Telegramie wybierz @Xinekx i wyślij 📩");
   }
 
   /* ---------------- UI glue ---------------- */
