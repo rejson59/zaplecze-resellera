@@ -564,7 +564,8 @@
 
   /* ---------------- Checkout (Telegram) ----------------
      Strona jest w budowie — zamówienie domykamy na priv via Telegram.
-     Link share/url podstawia gotową wiadomość z zawartością koszyka. */
+     Link t.me/Xinekx?text=… otwiera CZAT z @Xinekx z gotowym szkicem
+     wiadomości w polu do pisania (oficjalny draft_text deep-link). */
   function buildOrderMessage(entries, t) {
     const lines = entries.map(({ product: p, qty }) => {
       const unit = unitPriceFor(p);
@@ -595,11 +596,8 @@
     const btn = $("#checkoutBtn");
     if (!entries.length) return;
     const t = cartTotals();
-    const pageUrl = location.href.split("#")[0];
     btn.href =
-      "https://t.me/share/url?url=" +
-      encodeURIComponent(pageUrl) +
-      "&text=" +
+      "https://t.me/Xinekx?text=" +
       encodeURIComponent(buildOrderMessage(entries, t));
   }
 
@@ -607,11 +605,12 @@
     const entries = cartEntries();
     if (entries.length) {
       const msg = buildOrderMessage(entries, cartTotals());
+      // kopia do schowka jako zapas, gdyby starszy klient zignorował ?text=
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(msg).catch(() => {});
       }
     }
-    toast("Masz zamówienie w schowku — w Telegramie wybierz @Xinekx i wyślij 📩");
+    toast("Gotowa wiadomość czeka w czacie @Xinekx — kliknij Wyślij 📩");
   }
 
   /* ---------------- UI glue ---------------- */
