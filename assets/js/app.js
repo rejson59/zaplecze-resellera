@@ -378,8 +378,6 @@
         btn0.classList.add("btn-disabled");
         btn0.setAttribute("aria-disabled", "true");
       }
-      const pv0 = $("#msgPreviewText");
-      if (pv0) pv0.textContent = "(koszyk jest pusty)";
       return;
     }
     $("#cartFoot").style.display = "";
@@ -731,8 +729,6 @@
     if (!entries.length) {
       btn.classList.add("btn-disabled");
       btn.setAttribute("aria-disabled", "true");
-      const pv0 = $("#msgPreviewText");
-      if (pv0) pv0.textContent = "(koszyk jest pusty)";
       return;
     }
     btn.classList.remove("btn-disabled");
@@ -740,8 +736,6 @@
     const t = cartTotals();
     const msg = buildOrderMessage(entries, t);
     btn.href = "https://t.me/Xinekx?text=" + encodeURIComponent(msg);
-    const pv = $("#msgPreviewText");
-    if (pv) pv.textContent = msg;
   }
 
   function copyText(txt) {
@@ -1027,9 +1021,13 @@
 
   function renderLockersMap(L, pts, center, city) {
     if (!geoMap) {
+      const box = $("#geoLeaflet");
+      if (box) box.innerHTML = "";
       geoMap = L.map("geoLeaflet", { scrollWheelZoom: false });
-      /* ciemne kafelki CARTO (pasują do designu); przy błędach — zapasowe OSM */
+      /* ciemne kafelki CARTO (pasują do designu); kaskada fallbacków:
+         3 błędy → OSM, kolejne 3 → mapa Google w iframe */
       let tileErrors = 0;
+      let switched = false;
       let layer = L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         {
@@ -1040,13 +1038,18 @@
       ).addTo(geoMap);
       layer.on("tileerror", () => {
         tileErrors++;
-        if (tileErrors === 3) {
+        if (tileErrors === 3 && !switched) {
+          switched = true;
           try {
             geoMap.removeLayer(layer);
-            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
               maxZoom: 19,
               attribution: "&copy; OpenStreetMap",
             }).addTo(geoMap);
+            osm.on("tileerror", () => {
+              tileErrors++;
+              if (tileErrors >= 6) showGoogleFallbackMap(city);
+            });
           } catch (e) {}
         }
       });
@@ -1080,6 +1083,8 @@
   /* gdy Leaflet/kafeelki zawodzą — zwykła mapa Google w iframe (bez klikalnych pinezek) */
   function showGoogleFallbackMap(city) {
     showMapLoading(false);
+    geoMap = null;
+    geoMarkers = [];
     const box = $("#geoLeaflet");
     if (!box) return;
     box.innerHTML = `<iframe title="Mapa paczkomatów" loading="lazy" src="https://maps.google.com/maps?q=${encodeURIComponent(
@@ -1116,6 +1121,7 @@
   const OVERPASS_ENDPOINTS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
   ];
 
   async function searchLockers(cityName) {
@@ -1154,28 +1160,44 @@
         geo = { lat: +g0.lat, lon: +g0.lon, name: g0.name || city, bbox: [s, n, w, e] };
       }
       lastCity = geo.name;
-      setGeoStatus("Ładuję paczkomaty z mapy… 📦");
-      const query = `[out:json][timeout:20];node[amenity=parcel_locker](${geo.bbox[0]},${geo.bbox[2]},${geo.bbox[1]},${geo.bbox[3]});out body 80;`;
-      let oj = null;
-      for (const ep of OVERPASS_ENDPOINTS) {
-        try {
-          const oRes = await fetch(ep, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=UTF-8" },
-            body: query,
-          });
-          if (oRes.ok) {
-            const cand = await oRes.json();
-            if (cand && cand.elements) {
-              oj = cand;
-              break;
-            }
-          }
-        } catch (e) {
-          /* następny serwer */
-        }
+      setGeoStatus("Ładuję paczkomaty z mapy… 📦 (2–3 sekundy)");
+      /* mniejszy obszar = szybsze zapytanie: klamrujemy bbox wokół środka */
+      const cl = 0.09;
+      const bs = Math.max(geo.bbox[0], geo.lat - cl);
+      const bn = Math.min(geo.bbox[1], geo.lat + cl);
+      const bw = Math.max(geo.bbox[2], geo.lon - cl * 1.6);
+      const be = Math.min(geo.bbox[3], geo.lon + cl * 1.6);
+      const query = `[out:json][timeout:8];node[amenity=parcel_locker](${bs},${bw},${bn},${be});out body 60;`;
+      /* wszystkie serwery naraz — wygrywa najszybszy (Promise.any) */
+      const attempts = OVERPASS_ENDPOINTS.map((ep) => {
+        const ctrl =
+          typeof AbortController === "function" ? new AbortController() : null;
+        const tAbort = ctrl ? setTimeout(() => ctrl.abort(), 9000) : null;
+        return fetch(ep, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=UTF-8" },
+          body: query,
+          signal: ctrl ? ctrl.signal : undefined,
+        })
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http-" + r.status))))
+          .then((j) => {
+            if (!j || !j.elements) throw new Error("bad-json");
+            return j;
+          })
+          .finally(() => clearTimeout(tAbort));
+      });
+      let hardTimer;
+      const hardStop = new Promise((_, rej) => {
+        hardTimer = setTimeout(() => rej(new Error("hard-timeout")), 12000);
+      });
+      let oj;
+      try {
+        oj = await Promise.any([Promise.any(attempts), hardStop]);
+      } catch (e) {
+        throw new Error("overpass-unreachable");
+      } finally {
+        clearTimeout(hardTimer);
       }
-      if (!oj) throw new Error("overpass-unreachable");
       let pts = oj.elements.filter((el) => el.lat != null && el.lon != null);
       const isInpost = (el) =>
         /inpost/i.test(
