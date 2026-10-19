@@ -744,26 +744,6 @@
     if (pv) pv.textContent = msg;
   }
 
-  /* Walidacja: bez imienia i telefonu sprzedawca nie wyśle paczki */
-  function validateOrder() {
-    const name = $("#ofName");
-    const phone = $("#ofPhone");
-    const det = $("#ofShipDetails");
-    const errs = [];
-    [name, phone, det].forEach((el) => el && el.classList.remove("invalid"));
-    if (name && !name.value.trim()) errs.push({ el: name, label: "imię/nick" });
-    if (phone && (phone.value.match(/\d/g) || []).length < 9)
-      errs.push({ el: phone, label: "telefon (min. 9 cyfr)" });
-    if (det && !det.value.trim()) errs.push({ el: det, label: "dane dostawy" });
-    if (!errs.length) return true;
-    errs.forEach((er) => er.el.classList.add("invalid"));
-    errs[0].el.focus();
-    if (errs[0].el.scrollIntoView)
-      errs[0].el.scrollIntoView({ behavior: "smooth", block: "center" });
-    toast("Uzupełnij: " + errs.map((er) => er.label).join(", ") + " ✍️");
-    return false;
-  }
-
   function copyText(txt) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(txt).then(
@@ -803,14 +783,6 @@
     const m = $("#checkoutModal");
     if (m) m.classList.remove("open");
   }
-  let fallbackTimer = null;
-  function armCheckoutFallback() {
-    clearTimeout(fallbackTimer);
-    fallbackTimer = setTimeout(() => {
-      if (!document.hidden) openCheckoutModal();
-    }, 1800);
-  }
-
   function checkoutNotice() {
     const entries = cartEntries();
     if (entries.length) {
@@ -821,7 +793,6 @@
       }
     }
     toast("Otwieram czat @Xinekx z gotową treścią — kliknij Wyślij 📩 (treść masz też w schowku)");
-    armCheckoutFallback();
   }
 
   /* ---------------- Geolokalizacja — najbliższa okolica (100% lokalnie) --
@@ -1255,10 +1226,6 @@
         toast("Koszyk jest pusty — dodaj najpierw coś z oferty 🛒");
         return;
       }
-      if (!validateOrder()) {
-        e.preventDefault();
-        return;
-      }
       checkoutNotice();
     });
     if ($("#copyMsgBtn"))
@@ -1279,9 +1246,9 @@
 
     /* formularz danych do zamówienia (leci w wiadomości na Telegram) */
     const SHIP_PLACEHOLDERS = {
-      "Paczkomat InPost": "Paczkomat: numer + adres * (np. KAT108, ul. …)",
-      "Kurier InPost": "Adres dostawy *: ulica, numer, miasto, kod",
-      "Odbiór osobisty": "Miejscowość / dogodny termin *",
+      "Paczkomat InPost": "Paczkomat: numer + adres (np. KAT108, ul. …)",
+      "Kurier InPost": "Adres dostawy: ulica, numer, miasto, kod",
+      "Odbiór osobisty": "Miejscowość / dogodny termin",
     };
     const ofName = $("#ofName");
     if (ofName) {
@@ -1442,13 +1409,6 @@
     }
 
     /* geolokalizacja: wpisz miasto → szukaj paczkomatu */
-    /* czerwona ramka znika, gdy tylko użytkownik coś wpisze */
-    ["#ofName", "#ofPhone", "#ofShipDetails"].forEach((sel) => {
-      const el = $(sel);
-      if (el)
-        el.addEventListener("input", () => el.classList.remove("invalid"));
-    });
-
     if ($("#geoSearchBtn"))
       $("#geoSearchBtn").addEventListener("click", () =>
         searchLockers($("#geoCityInput").value)

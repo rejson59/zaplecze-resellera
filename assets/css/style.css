@@ -3214,3 +3214,20 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     gap: 6px 14px;
   }
 }
+
+/* ============================================================
+   v15 — checkout bez blokad: wszystko opcjonalne, reszta na priv
+   ============================================================ */
+.priv-note {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 0;
+}
+.priv-note b {
+  color: var(--gold-soft);
+}
