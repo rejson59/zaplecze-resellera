@@ -562,6 +562,25 @@
     }, 2600);
   }
 
+  /* ---------------- Dane do zamówienia (formularz w koszyku) -------- */
+  const ORDER_KEY = "zaplecze-order";
+  function loadOrder() {
+    try {
+      return JSON.parse(localStorage.getItem(ORDER_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+  function saveOrder(patch) {
+    const o = Object.assign(loadOrder(), patch);
+    try {
+      localStorage.setItem(ORDER_KEY, JSON.stringify(o));
+    } catch (e) {
+      /* prywatny tryb przeglądarki itp. */
+    }
+    return o;
+  }
+
   /* ---------------- Checkout (Telegram) ----------------
      Strona jest w budowie — zamówienie domykamy na priv via Telegram.
      Link t.me/Xinekx?text=… otwiera CZAT z @Xinekx z gotowym szkicem
@@ -580,6 +599,9 @@
       perfUnits >= 5
         ? `\n(perfumy: ${perfUnits} szt — rabat ilościowy ${perfumeUnitPrice(perfUnits)} zł/szt)`
         : "";
+    const o = loadOrder();
+    const val = (s) => (s && s.trim() ? s.trim() : "— podam w czacie");
+    const notesLine = o.notes && o.notes.trim() ? `\nUwagi: ${o.notes.trim()}` : "";
     return (
       `Cześć! Moje zamówienie ze sklepu Zaplecze Resellera:\n\n` +
       lines.join("\n") +
@@ -587,7 +609,12 @@
       payLine +
       `\nRazem: ${t.total} zł` +
       perfNote +
-      `\n\nProszę o potwierdzenie i dane do wysyłki 🙂`
+      `\n\nDane do wysyłki:\n` +
+      `Imię/nick: ${val(o.name)}\n` +
+      `Telefon: ${val(o.phone)}\n` +
+      `Dostawa: ${o.ship || "Paczkomat InPost"} — ${val(o.shipDetails)}` +
+      notesLine +
+      `\n\nProszę o potwierdzenie zamówienia 🙂`
     );
   }
 
@@ -682,6 +709,51 @@
     $("#cartClose").addEventListener("click", closeCart);
     $("#overlay").addEventListener("click", closeCart);
     $("#checkoutBtn").addEventListener("click", checkoutNotice);
+
+    /* formularz danych do zamówienia (leci w wiadomości na Telegram) */
+    const SHIP_PLACEHOLDERS = {
+      "Paczkomat InPost": "Paczkomat: numer + adres (np. KAT108, ul. …)",
+      "Kurier InPost": "Adres dostawy: ulica, numer, miasto, kod",
+      "Odbiór osobisty": "Miejscowość / dogodny termin",
+    };
+    const ofName = $("#ofName");
+    if (ofName) {
+      const ofPhone = $("#ofPhone");
+      const ofShip = $("#ofShip");
+      const ofDetails = $("#ofShipDetails");
+      const ofNotes = $("#ofNotes");
+      const saved = loadOrder();
+      ofName.value = saved.name || "";
+      ofPhone.value = saved.phone || "";
+      if (saved.ship) ofShip.value = saved.ship;
+      ofDetails.value = saved.shipDetails || "";
+      ofDetails.placeholder =
+        SHIP_PLACEHOLDERS[ofShip.value] || SHIP_PLACEHOLDERS["Paczkomat InPost"];
+      ofNotes.value = saved.notes || "";
+
+      const sync = () => updateCheckoutLink();
+      ofName.addEventListener("input", () => {
+        saveOrder({ name: ofName.value });
+        sync();
+      });
+      ofPhone.addEventListener("input", () => {
+        saveOrder({ phone: ofPhone.value });
+        sync();
+      });
+      ofDetails.addEventListener("input", () => {
+        saveOrder({ shipDetails: ofDetails.value });
+        sync();
+      });
+      ofNotes.addEventListener("input", () => {
+        saveOrder({ notes: ofNotes.value });
+        sync();
+      });
+      ofShip.addEventListener("change", () => {
+        saveOrder({ ship: ofShip.value });
+        ofDetails.placeholder = SHIP_PLACEHOLDERS[ofShip.value] || "";
+        sync();
+      });
+    }
 
     /* modal */
     $("#modalClose").addEventListener("click", closeModal);
