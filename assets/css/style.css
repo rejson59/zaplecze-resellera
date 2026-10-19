@@ -2450,3 +2450,45 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
 .order-form textarea::placeholder {
   color: var(--muted-2);
 }
+
+/* ============================================================
+   v10 — przebudowany koszyk: jeden scroll + przyklejony dół
+   ============================================================ */
+.cart-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+/* items nie są już osobnym scrollem — płyną w .cart-scroll */
+.cart-items {
+  flex: none;
+  overflow: visible;
+}
+.cart-mid {
+  border-top: 1px solid var(--line);
+  padding: 18px 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.cart-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.order-form {
+  margin: 0;
+}
+/* dół (suma + przycisk TG) zawsze przyklejony i widoczny */
+.cart-foot {
+  flex: none;
+  box-shadow: 0 -14px 30px rgba(8, 8, 10, 0.45);
+}
+@media (max-width: 560px) {
+  .cart-mid {
+    padding: 16px 16px 22px;
+    gap: 18px;
+  }
+}

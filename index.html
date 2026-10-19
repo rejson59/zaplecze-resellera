@@ -13,7 +13,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308080a'/%3E%3Ctext x='32' y='43' font-family='Arial Black, sans-serif' font-size='26' font-weight='900' fill='%23d8b45c' text-anchor='middle'%3EZR%3C/text%3E%3C/svg%3E" />
   <link rel="preload" href="assets/fonts/syne-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261019g" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019h" />
 </head>
 <body id="top">
 
@@ -270,27 +270,35 @@
       <h3>Twój koszyk</h3>
       <button class="icon-btn" id="cartClose" aria-label="Zamknij koszyk">✕</button>
     </div>
-    <div class="cart-notice" role="status">
-      🚧 Strona w budowie — zamówienia:
-      <a href="https://t.me/Xinekx" target="_blank" rel="noopener">Telegram @Xinekx</a>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-foot" id="cartFoot">
-      <span class="pay-select-label">Metoda płatności</span>
-      <div class="pay-options" id="payOptions"></div>
-      <div class="totals" id="cartTotals"></div>
-      <div class="order-form" id="orderForm">
-        <span class="of-label">Dane do zamówienia — wyślą się razem z wiadomością</span>
-        <input id="ofName" type="text" placeholder="Imię / nick" autocomplete="name" />
-        <input id="ofPhone" type="tel" placeholder="Telefon (wymagany przez InPost)" autocomplete="tel" inputmode="tel" />
-        <select id="ofShip" aria-label="Sposób dostawy">
-          <option value="Paczkomat InPost" selected>Paczkomat InPost</option>
-          <option value="Kurier InPost">Kurier InPost</option>
-          <option value="Odbiór osobisty">Odbiór osobisty</option>
-        </select>
-        <input id="ofShipDetails" type="text" placeholder="Paczkomat: numer + adres" autocomplete="off" />
-        <textarea id="ofNotes" rows="2" placeholder="Uwagi do zamówienia (opcjonalnie)"></textarea>
+    <div class="cart-scroll">
+      <div class="cart-notice" role="status">
+        🚧 Strona w budowie — zamówienia:
+        <a href="https://t.me/Xinekx" target="_blank" rel="noopener">Telegram @Xinekx</a>
       </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-mid">
+        <div class="cart-group">
+          <span class="pay-select-label">1. Metoda płatności</span>
+          <div class="pay-options" id="payOptions"></div>
+        </div>
+        <div class="cart-group">
+          <div class="order-form" id="orderForm">
+            <span class="of-label">2. Dane do zamówienia — wyślą się razem z wiadomością</span>
+            <input id="ofName" type="text" placeholder="Imię / nick" autocomplete="name" />
+            <input id="ofPhone" type="tel" placeholder="Telefon (wymagany przez InPost)" autocomplete="tel" inputmode="tel" />
+            <select id="ofShip" aria-label="Sposób dostawy">
+              <option value="Paczkomat InPost" selected>Paczkomat InPost</option>
+              <option value="Kurier InPost">Kurier InPost</option>
+              <option value="Odbiór osobisty">Odbiór osobisty</option>
+            </select>
+            <input id="ofShipDetails" type="text" placeholder="Paczkomat: numer + adres" autocomplete="off" />
+            <textarea id="ofNotes" rows="2" placeholder="Uwagi do zamówienia (opcjonalnie)"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cart-foot" id="cartFoot">
+      <div class="totals" id="cartTotals"></div>
       <a class="btn btn-block" id="checkoutBtn" href="https://t.me/Xinekx" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M21.9 4.4 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.2.2-.4.4-.9.4l.3-4.7L18.4 6c.4-.3-.1-.5-.6-.2L7.2 12.5l-4.5-1.4c-1-.3-1-1 .2-1.4L20.6 3c.8-.3 1.5.2 1.3 1.4Z"/></svg>
         Zamów przez Telegram
@@ -337,7 +345,7 @@
     </div>
   </nav>
 
-  <script src="assets/js/data.js?v=20261019g"></script>
-  <script src="assets/js/app.js?v=20261019g"></script>
+  <script src="assets/js/data.js?v=20261019h"></script>
+  <script src="assets/js/app.js?v=20261019h"></script>
 </body>
 </html>
