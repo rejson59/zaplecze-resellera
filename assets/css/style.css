@@ -2098,3 +2098,42 @@ html {
     padding-bottom: 0;
   }
 }
+
+/* ============================================================
+   v3 — mobile: przyciski równo z ekranem, zero poziomego scrolla
+   ============================================================ */
+html {
+  overflow-x: hidden;
+}
+.btn {
+  max-width: 100%;
+}
+@media (max-width: 560px) {
+  /* CTA i akcje modala: kolumna na całą szerokość kontenera */
+  .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .hero-cta .btn {
+    width: 100%;
+  }
+  .modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .modal-actions .btn {
+    width: 100%;
+  }
+  .modal-actions .qty {
+    align-self: flex-start;
+  }
+  .cart-notice {
+    font-size: 12px;
+  }
+  /* przyciski kart i koszyka dotykają tych samych marginesów co reszta */
+  .p-add,
+  #checkoutBtn {
+    width: 100%;
+  }
+}
