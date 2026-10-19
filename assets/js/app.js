@@ -373,6 +373,13 @@
         document.getElementById("sklep").scrollIntoView({ behavior: "smooth" });
       });
       $("#cartFoot").style.display = "none";
+      const btn0 = $("#checkoutBtn");
+      if (btn0) {
+        btn0.classList.add("btn-disabled");
+        btn0.setAttribute("aria-disabled", "true");
+      }
+      const pv0 = $("#msgPreviewText");
+      if (pv0) pv0.textContent = "(koszyk jest pusty)";
       return;
     }
     $("#cartFoot").style.display = "";
@@ -720,11 +727,88 @@
   function updateCheckoutLink() {
     const entries = cartEntries();
     const btn = $("#checkoutBtn");
-    if (!entries.length) return;
+    if (!btn) return;
+    if (!entries.length) {
+      btn.classList.add("btn-disabled");
+      btn.setAttribute("aria-disabled", "true");
+      const pv0 = $("#msgPreviewText");
+      if (pv0) pv0.textContent = "(koszyk jest pusty)";
+      return;
+    }
+    btn.classList.remove("btn-disabled");
+    btn.removeAttribute("aria-disabled");
     const t = cartTotals();
-    btn.href =
-      "https://t.me/Xinekx?text=" +
-      encodeURIComponent(buildOrderMessage(entries, t));
+    const msg = buildOrderMessage(entries, t);
+    btn.href = "https://t.me/Xinekx?text=" + encodeURIComponent(msg);
+    const pv = $("#msgPreviewText");
+    if (pv) pv.textContent = msg;
+  }
+
+  /* Walidacja: bez imienia i telefonu sprzedawca nie wyśle paczki */
+  function validateOrder() {
+    const name = $("#ofName");
+    const phone = $("#ofPhone");
+    const det = $("#ofShipDetails");
+    const errs = [];
+    [name, phone, det].forEach((el) => el && el.classList.remove("invalid"));
+    if (name && !name.value.trim()) errs.push({ el: name, label: "imię/nick" });
+    if (phone && (phone.value.match(/\d/g) || []).length < 9)
+      errs.push({ el: phone, label: "telefon (min. 9 cyfr)" });
+    if (det && !det.value.trim()) errs.push({ el: det, label: "dane dostawy" });
+    if (!errs.length) return true;
+    errs.forEach((er) => er.el.classList.add("invalid"));
+    errs[0].el.focus();
+    if (errs[0].el.scrollIntoView)
+      errs[0].el.scrollIntoView({ behavior: "smooth", block: "center" });
+    toast("Uzupełnij: " + errs.map((er) => er.label).join(", ") + " ✍️");
+    return false;
+  }
+
+  function copyText(txt) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(
+        () => toast("Skopiowane do schowka ✅"),
+        () => toast("Schowek zablokowany — zaznacz treść i skopiuj ręcznie ✂️")
+      );
+      return;
+    }
+    /* stary fallback: ukryty textarea + execCommand */
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = txt;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand && document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast(ok ? "Skopiowane do schowka ✅" : "Skopiuj treść ręcznie ✂️");
+    } catch (e) {
+      toast("Skopiuj treść ręcznie ✂️");
+    }
+  }
+
+  /* Zapasowa ścieżka, gdy Telegram się nie otworzy (brak aplikacji,
+     blokada popupów, sam login w przeglądarce). Otwieramy ręcznie
+     albo automatycznie, gdy strona została widoczna po kliknięciu
+     „Zamów przez Telegram" — czyli nic się nie uruchomiło. */
+  function openCheckoutModal() {
+    const entries = cartEntries();
+    $("#cmText").value = entries.length
+      ? buildOrderMessage(entries, cartTotals())
+      : "(koszyk jest pusty)";
+    $("#checkoutModal").classList.add("open");
+  }
+  function closeCheckoutModal() {
+    const m = $("#checkoutModal");
+    if (m) m.classList.remove("open");
+  }
+  let fallbackTimer = null;
+  function armCheckoutFallback() {
+    clearTimeout(fallbackTimer);
+    fallbackTimer = setTimeout(() => {
+      if (!document.hidden) openCheckoutModal();
+    }, 1800);
   }
 
   function checkoutNotice() {
@@ -736,7 +820,8 @@
         navigator.clipboard.writeText(msg).catch(() => {});
       }
     }
-    toast("Gotowa wiadomość czeka w czacie @Xinekx — kliknij Wyślij 📩");
+    toast("Otwieram czat @Xinekx z gotową treścią — kliknij Wyślij 📩 (treść masz też w schowku)");
+    armCheckoutFallback();
   }
 
   /* ---------------- Geolokalizacja — najbliższa okolica (100% lokalnie) --
@@ -1164,13 +1249,39 @@
     $("#bbCart").addEventListener("click", openCart);
     $("#cartClose").addEventListener("click", closeCart);
     $("#overlay").addEventListener("click", closeCart);
-    $("#checkoutBtn").addEventListener("click", checkoutNotice);
+    $("#checkoutBtn").addEventListener("click", (e) => {
+      if (!cartEntries().length) {
+        e.preventDefault();
+        toast("Koszyk jest pusty — dodaj najpierw coś z oferty 🛒");
+        return;
+      }
+      if (!validateOrder()) {
+        e.preventDefault();
+        return;
+      }
+      checkoutNotice();
+    });
+    if ($("#copyMsgBtn"))
+      $("#copyMsgBtn").addEventListener("click", () => {
+        const entries = cartEntries();
+        if (!entries.length) {
+          toast("Koszyk jest pusty — nie ma czego kopiować 🛒");
+          return;
+        }
+        copyText(buildOrderMessage(entries, cartTotals()));
+      });
+    if ($("#tgHelpBtn"))
+      $("#tgHelpBtn").addEventListener("click", openCheckoutModal);
+    if ($("#cmClose")) $("#cmClose").addEventListener("click", closeCheckoutModal);
+    if ($("#cmBackdrop")) $("#cmBackdrop").addEventListener("click", closeCheckoutModal);
+    if ($("#cmCopy"))
+      $("#cmCopy").addEventListener("click", () => copyText($("#cmText").value));
 
     /* formularz danych do zamówienia (leci w wiadomości na Telegram) */
     const SHIP_PLACEHOLDERS = {
-      "Paczkomat InPost": "Paczkomat: numer + adres (np. KAT108, ul. …)",
-      "Kurier InPost": "Adres dostawy: ulica, numer, miasto, kod",
-      "Odbiór osobisty": "Miejscowość / dogodny termin",
+      "Paczkomat InPost": "Paczkomat: numer + adres * (np. KAT108, ul. …)",
+      "Kurier InPost": "Adres dostawy *: ulica, numer, miasto, kod",
+      "Odbiór osobisty": "Miejscowość / dogodny termin *",
     };
     const ofName = $("#ofName");
     if (ofName) {
@@ -1219,6 +1330,7 @@
         closeModal();
         closeCart();
         closeInfoModal();
+        closeCheckoutModal();
         const gm = $("#geoModal");
         if (gm) gm.classList.remove("open");
       }
@@ -1330,6 +1442,13 @@
     }
 
     /* geolokalizacja: wpisz miasto → szukaj paczkomatu */
+    /* czerwona ramka znika, gdy tylko użytkownik coś wpisze */
+    ["#ofName", "#ofPhone", "#ofShipDetails"].forEach((sel) => {
+      const el = $(sel);
+      if (el)
+        el.addEventListener("input", () => el.classList.remove("invalid"));
+    });
+
     if ($("#geoSearchBtn"))
       $("#geoSearchBtn").addEventListener("click", () =>
         searchLockers($("#geoCityInput").value)
