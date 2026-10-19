@@ -2137,3 +2137,26 @@ html {
     width: 100%;
   }
 }
+
+/* ============================================================
+   v4 — dodatkowy margines bezpieczeństwa na wąskich ekranach
+   ============================================================ */
+p, li, .btn, .review-quote, .ci-name, .cart-notice {
+  overflow-wrap: break-word;
+}
+.hero-lead {
+  max-width: 46ch;
+}
+.section-sub {
+  max-width: 52ch;
+}
+@media (max-width: 720px) {
+  .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .hero-cta .btn {
+    width: 100%;
+  }
+}
