@@ -2160,3 +2160,31 @@ p, li, .btn, .review-quote, .ci-name, .cart-notice {
     width: 100%;
   }
 }
+
+/* ============================================================
+   v5 — hero nie rozpycha ekranu (min-width:0 w gridach) + cache-bust
+   ============================================================ */
+.hero-grid > *,
+.payments-grid > *,
+.footer-grid > *,
+.modal-box > *,
+.steps > * {
+  min-width: 0;
+}
+h1, h2, h3, h4 {
+  overflow-wrap: break-word;
+}
+.hero h1 {
+  font-size: clamp(30px, 8.5vw, 84px);
+}
+@media (max-width: 720px) {
+  .hero-stats {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+  }
+  .hero-stats .lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+  }
+}
