@@ -2245,3 +2245,117 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
   object-fit: initial;
   object-position: initial;
 }
+
+/* ============================================================
+   v8 — szklane pigułki + płynniejsze ładowanie i animacje
+   ============================================================ */
+:root {
+  --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Nawigacja desktopowa w szklanej pigułce */
+.main-nav {
+  gap: 2px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Header i hero wjeżdżają płynnie po załadowaniu */
+@keyframes headerDrop {
+  from { opacity: 0; transform: translateY(-14px); }
+}
+.site-header { animation: headerDrop 0.7s var(--ease-glide) both; }
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(22px); }
+}
+.hero .hero-pill,
+.hero h1,
+.hero .hero-lead,
+.hero .hero-cta,
+.hero .hero-stats,
+.hero .hero-collage {
+  animation: riseIn 0.85s var(--ease-glide) both;
+}
+.hero h1 { animation-delay: 0.06s; }
+.hero .hero-lead { animation-delay: 0.14s; }
+.hero .hero-cta { animation-delay: 0.22s; }
+.hero .hero-stats { animation-delay: 0.3s; }
+.hero .hero-collage { animation-delay: 0.18s; }
+
+/* Płynniejsze krzywe dla reveal i kart */
+.reveal { transition: opacity 0.8s var(--ease-glide), transform 0.8s var(--ease-glide); }
+.p-card {
+  animation: cardIn 0.55s var(--ease-glide) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Obrazki delikatnie się wyłaniają */
+@keyframes imgFade {
+  from { opacity: 0; }
+}
+.p-media img,
+.cat-card img,
+.review-img img,
+.collage-card img {
+  animation: imgFade 0.6s ease both;
+}
+
+/* Sprężyste wciśnięcie przycisków */
+.btn {
+  transition: transform 0.2s var(--ease-glide), box-shadow 0.3s ease,
+    background 0.3s ease, border-color 0.3s ease, color 0.2s ease;
+}
+.btn:active { transform: translateY(1px) scale(0.975); }
+
+/* Mobilny pasek dolny = pływająca szklana pigułka (Start/Kategorie/Sklep/Koszyk) */
+@keyframes pillUp {
+  from { opacity: 0; transform: translate(-50%, 26px); }
+}
+@media (max-width: 720px) {
+  .bottom-bar {
+    left: 50%;
+    right: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: calc(100% - 20px);
+    max-width: 460px;
+    transform: translateX(-50%);
+    background: transparent;
+    border-top: 0;
+    padding: 0;
+    animation: pillUp 0.6s var(--ease-glide) 0.25s both;
+  }
+  .bottom-bar-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 2px;
+    padding: 6px;
+    border-radius: 999px;
+    background: rgba(16, 16, 21, 0.6);
+    backdrop-filter: blur(20px) saturate(170%);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+  .bb-btn {
+    flex: 1;
+    border-radius: 999px;
+    padding: 8px 4px;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
+  }
+  .bb-btn.active { background: rgba(216, 180, 92, 0.14); }
+  .bb-btn:active { transform: scale(0.94); background: rgba(216, 180, 92, 0.18); }
+  body { padding-bottom: 86px; }
+  .toast-wrap { bottom: calc(98px + env(safe-area-inset-bottom)); }
+}
+/* Krajobraz: pigułka ukryta (jak dotąd) — zero odstępu na dole */
+@media (max-height: 520px) and (orientation: landscape) {
+  body { padding-bottom: 0; }
+  .toast-wrap { bottom: 20px; }
+}

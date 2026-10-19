@@ -624,7 +624,20 @@
       const ratio = max > 0 ? window.scrollY / max : 0;
       progress.style.transform = `scaleX(${Math.min(1, Math.max(0, ratio))})`;
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    /* throttling rAF — pasek postępu i header bez szarpania */
+    let rafPending = false;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (rafPending) return;
+        rafPending = true;
+        requestAnimationFrame(() => {
+          onScroll();
+          rafPending = false;
+        });
+      },
+      { passive: true }
+    );
     onScroll();
 
     /* burger */
