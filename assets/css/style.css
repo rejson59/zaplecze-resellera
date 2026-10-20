@@ -3393,3 +3393,45 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     width: 100%;
   }
 }
+
+/* ============================================================
+   v25 — marquee jedzie mimo systemowego "ogranicz animacje"
+   (prefers-reduced-motion zbijał czas animacji do 0 na komputerze);
+   pigułka: nav wyśrodkowany, równe wysokości 40px, koszyk w środku
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: marquee 36s linear infinite !important;
+  }
+}
+@media (min-width: 861px) {
+  .header-inner {
+    align-items: center;
+    padding-right: 14px;
+  }
+  .main-nav {
+    margin-inline: auto; /* grupa linków wyśrodkowana w pigułce */
+  }
+  .main-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 13px;
+    text-align: center;
+  }
+  .logo {
+    align-items: center;
+  }
+  .search-box input {
+    height: 40px;
+  }
+  .cart-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .cart-count {
+    top: -4px;
+    right: -4px;
+  }
+}
