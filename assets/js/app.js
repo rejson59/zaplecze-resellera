@@ -59,7 +59,12 @@
     for (const t of DATA.perfumeTiers) if (units >= t.min) price = t.price;
     return price;
   }
-  function unitPriceFor(product) {
+  function unitPriceFor(product, qty) {
+    if (product.tiers && qty) {
+      let price = product.tiers[0].price;
+      for (const t of product.tiers) if (qty >= t.min) price = t.price;
+      return price;
+    }
     if (product.category === "perfumy") {
       return perfumeUnitPrice(perfumeUnitsInCart());
     }
@@ -240,6 +245,7 @@
               <span class="p-price">${money(p.price)}</span>
               <s class="p-regular">${money(p.regular)}</s>
             </div>
+            ${p.tierNote ? `<div class="p-tier">${p.tierNote}</div>` : ""}
             <button class="btn btn-sm btn-block p-add" data-add="${p.id}">
               Dodaj do koszyka
             </button>
@@ -332,7 +338,7 @@
   function cartTotals() {
     const entries = cartEntries();
     const subtotal = entries.reduce(
-      (s, e) => s + unitPriceFor(e.product) * e.qty,
+      (s, e) => s + unitPriceFor(e.product, e.qty) * e.qty,
       0
     );
     const method = DATA.payments.methods.find((m) => m.id === state.payment);
@@ -379,15 +385,16 @@
 
     box.innerHTML = entries
       .map(({ product: p, qty }) => {
-        const unit = unitPriceFor(p);
+        const unit = unitPriceFor(p, qty);
         const isPerf = p.category === "perfumy";
+        const strike = unit !== p.price ? ` <s>${money(p.price)}</s>` : "";
         return `
         <div class="cart-item">
           <img src="${p.images[0]}" alt="${p.name}" loading="lazy" />
           <div>
             <div class="ci-name">${p.name}</div>
             <div class="ci-unit">
-              ${money(unit)} / szt.${isPerf ? ` <s>${money(p.regular)}</s>` : ""}
+              ${money(unit)} / szt.${isPerf ? ` <s>${money(p.regular)}</s>` : strike}
             </div>
             <div class="qty" data-qtybox="${p.id}">
               <button data-dec="${p.id}" aria-label="Zmniejsz ilość">−</button>
@@ -452,6 +459,13 @@
           ? `🎉 Masz ${perfUnits} szt. perfum — cena 110 zł/szt. Przy 10+ możliwa dalsza negocjacja na priv.`
           : `🎉 Masz ${perfUnits} szt. perfum — rabat ilościowy: ${perfPrice} zł/szt.`;
       $("#cartItems").appendChild(note);
+    }
+    const tierEntry = entries.find((e) => e.product.tiers);
+    if (tierEntry && tierEntry.qty >= 10) {
+      const note2 = document.createElement("div");
+      note2.className = "tier-note";
+      note2.textContent = `🎉 Masz ${tierEntry.qty} op. — 25 zł/op. Powyżej 10 op. cena do ustalenia na priv.`;
+      $("#cartItems").appendChild(note2);
     }
 
     updateCheckoutLink();

@@ -3502,3 +3502,17 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
 .info-body > .section-head {
   padding-right: 46px; /* miejsce na przycisk ✕ */
 }
+
+
+/* ============================================================
+   v28 — 5. kategoria (Akcesoria) w jednym rzędzie + progi cenowe na karcie
+   ============================================================ */
+.cat-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.p-tier {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-2);
+}

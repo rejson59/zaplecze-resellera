@@ -32,6 +32,12 @@ window.STORE_DATA = {
       tagline: "Zestawy kolekcjonerskie",
       image: "zestaw-lego-1500zl.jpg",
     },
+    {
+      id: "akcesoria",
+      name: "Akcesoria",
+      tagline: "Skarpetki & dodatki",
+      image: "nike-skarpetki.png",
+    },
   ],
 
   /* Zniżki ilościowe na perfumy (z ceny.md):
@@ -512,6 +518,23 @@ window.STORE_DATA = {
       images: ["zestaw-lego-450zl(3).jpg"],
       desc: "Ferrari Daytona SP3 42143 — 3778 elementów, skala 1:8, otwierane drzwi i detaliczny silnik V12.",
       meta: ["3778 elementów", "18+", "Kompletny zestaw"],
+    },
+    /* ---------------- AKCESORIA ---------------- */
+    {
+      id: "nike-skarpetki",
+      name: "Nike Everyday Crew — białe skarpetki (opakowanie)",
+      brand: "Nike",
+      category: "akcesoria",
+      price: 30,
+      regular: 59, /* średnia rynkowa 3-packu Everyday Crew w PL (Nike/Kaufland/sportbazar: 55–60 zł) */
+      images: ["nike-skarpetki.png"],
+      desc: "Oryginalne Nike Everyday Crew (DRI-FIT, cotton cushioned) w fabrycznych opakowaniach z banderolą Nike. Białe, unisex, mix rozmiarów — idealne pod odsprzedaż sztuką.",
+      meta: ["Oryginał z banderolą Nike", "DRI-FIT · cotton cushioned", "Kolor: biały"],
+      tiers: [
+        { min: 1, price: 30, label: "1 op." },
+        { min: 10, price: 25, label: "10 op." },
+      ],
+      tierNote: "30 zł/op. · przy 10 op. 25 zł/op. · większe ilości — cena do ustalenia na priv",
     },
   ],
 
