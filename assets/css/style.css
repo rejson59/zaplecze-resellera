@@ -1970,10 +1970,6 @@ html {
   animation-delay: var(--d, 0ms);
 }
 
-/* Marquee staje po najechaniu */
-.marquee:hover .marquee-track {
-  animation-play-state: paused;
-}
 
 /* Subtelny połysk przycisków */
 .btn {
@@ -3281,4 +3277,58 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
 }
 .hero-stats .num {
   white-space: nowrap;
+}
+
+
+/* ============================================================
+   v22 — hero mniejszy na pewno, marquee zawsze jedzie,
+   desktop: cały nagłówek jako jedna szklana pigułka
+   ============================================================ */
+
+/* nagłówek hero: mniejszy zapas + szersza kolumna tekstu */
+.hero h1 {
+  font-size: clamp(28px, 4.8vw, 56px);
+}
+@container hero (min-width: 1px) {
+  .hero h1 {
+    font-size: clamp(28px, min(4.8vw, 5cqw), 56px);
+  }
+}
+@media (min-width: 861px) {
+  .hero-grid {
+    grid-template-columns: 1.12fr 0.88fr;
+  }
+}
+
+/* desktop: logo + nawigacja + wyszukiwarka + koszyk w jednej pigułce */
+@media (min-width: 861px) {
+  .site-header {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: 0;
+  }
+  .site-header.scrolled {
+    background: transparent;
+    border-bottom: 0;
+  }
+  .header-inner {
+    background: rgba(10, 10, 14, 0.74);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 8px 12px 8px 22px;
+    box-shadow: var(--shadow-1);
+    gap: 12px;
+  }
+  .main-nav {
+    gap: 0;
+  }
+  .main-nav a {
+    padding: 8px 12px;
+  }
+  .search-box.desktop {
+    width: 190px;
+  }
 }
