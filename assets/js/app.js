@@ -851,27 +851,10 @@
   }
 
   function renderGeoChip() {
-    const chip = $("#geoChip");
-    if (!chip) return;
-    const hit = savedCity();
-    const use = $("#geoUse");
+    /* v27: chip zniknął — został jeden rząd miasto+przycisk;
+       przycisk GPS chowamy, gdy miasto jest już znane */
     const retry = $("#geoRetry");
-    const det = $("#ofShipDetails");
-    const panel = $("#geoMapPanel");
-    if (hit) {
-      $("#geoChipText").textContent =
-        hit.km != null
-          ? `📍 Twoja okolica: ${hit.name} (${hit.voiv}) · ~${hit.km} km`
-          : `📍 Twoje miasto: ${hit.name} (${hit.voiv})`;
-      chip.hidden = false;
-      /* „Wstaw" tylko gdy pole dostawy jest puste — niczego nie nadpisujemy */
-      use.hidden = !(det && !det.value.trim());
-      if (retry) retry.hidden = true;
-    } else {
-      chip.hidden = true;
-      if (panel) panel.hidden = true;
-      if (retry) retry.hidden = false;
-    }
+    if (retry) retry.hidden = !!savedCity();
   }
 
   function setGeoStatus(msg, isErr) {
@@ -1179,25 +1162,6 @@
     }
   }
 
-  /* chip „Znajdź paczkomat": otwiera/zamyka panel i szuka dla zapisanego miasta */
-  function toggleGeoMap() {
-    const panel = $("#geoMapPanel");
-    if (!panel) return;
-    if (!panel.hidden) {
-      panel.hidden = true;
-      return;
-    }
-    const hit = savedCity();
-    const inp = $("#geoCityInput");
-    const city = (inp && inp.value.trim()) || (hit && hit.name) || "";
-    if (!city) {
-      setGeoStatus("Wpisz miasto i kliknij „Szukaj paczkomatu” 🔎");
-      if (inp) inp.focus();
-      return;
-    }
-    if (inp && !inp.value.trim()) inp.value = city;
-    searchLockers(city);
-  }
 
   function maybeAskGeo() {
     const modal = $("#geoModal");
@@ -1390,17 +1354,6 @@
         detectGeo();
       });
       $("#geoRetry").addEventListener("click", detectGeo);
-      $("#geoUse").addEventListener("click", () => {
-        const hit = savedCity();
-        const det = $("#ofShipDetails");
-        if (hit && det) {
-          det.value = `${hit.name} (${hit.voiv})`;
-          saveOrder({ shipDetails: det.value });
-          updateCheckoutLink();
-          renderGeoChip();
-          toast("Okolica wstawiona do dostawy 📍");
-        }
-      });
     }
 
     /* filtr ceny od–do */
@@ -1522,7 +1475,6 @@
           searchLockers(e.target.value);
         }
       });
-    if ($("#geoMapBtn")) $("#geoMapBtn").addEventListener("click", toggleGeoMap);
 
     /* reveal on scroll */
     const io =
