@@ -13,7 +13,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308080a'/%3E%3Ctext x='32' y='43' font-family='Arial Black, sans-serif' font-size='26' font-weight='900' fill='%23d8b45c' text-anchor='middle'%3EZR%3C/text%3E%3C/svg%3E" />
   <link rel="preload" href="assets/fonts/syne-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261019q" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019r" />
 </head>
 <body id="top">
 
@@ -368,7 +368,12 @@
     <div class="modal-box">
       <button class="icon-btn modal-close" id="modalClose" aria-label="Zamknij okno">✕</button>
       <div class="modal-gallery">
-        <div class="modal-main-img" id="modalMainImgWrap"><img id="modalMainImg" src="" alt="" /></div>
+        <div class="modal-main-img" id="modalMainImgWrap">
+          <img id="modalMainImg" src="" alt="" />
+          <button type="button" class="gal-nav prev" id="galPrev" aria-label="Poprzednie zdjęcie">‹</button>
+          <button type="button" class="gal-nav next" id="galNext" aria-label="Następne zdjęcie">›</button>
+          <span class="gal-count" id="galCount" hidden></span>
+        </div>
         <p class="gallery-hint" id="galleryHint" hidden></p>
         <div class="modal-thumbs" id="modalThumbs"></div>
       </div>
@@ -447,7 +452,7 @@
     </div>
   </nav>
 
-  <script src="assets/js/data.js?v=20261019q"></script>
-  <script src="assets/js/app.js?v=20261019q"></script>
+  <script src="assets/js/data.js?v=20261019r"></script>
+  <script src="assets/js/app.js?v=20261019r"></script>
 </body>
 </html>

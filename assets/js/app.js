@@ -588,6 +588,13 @@
       document.body.style.overflow = "";
   }
 
+  function galleryStep(dir) {
+    if (!modalProduct || modalProduct.images.length < 2) return;
+    const n = modalProduct.images.length;
+    modalImgIndex = (modalImgIndex + dir + n) % n;
+    renderModal();
+  }
+
   function renderModal() {
     const p = modalProduct;
     const off = Math.round((1 - p.price / p.regular) * 100);
@@ -601,9 +608,18 @@
       hint.hidden = false;
       hint.textContent =
         p.images.length > 1
-          ? "👆 Przesuń w bok = kolejne zdjęcie · kliknij = przybliżenie"
+          ? "Strzałki ‹ › / przeciągnięcie = kolejne zdjęcie · kliknij zdjęcie = przybliżenie"
           : "👆 Kliknij zdjęcie, aby przybliżyć";
     }
+    const cnt = $("#galCount");
+    if (cnt) {
+      cnt.hidden = p.images.length < 2;
+      cnt.textContent = `${modalImgIndex + 1} / ${p.images.length}`;
+    }
+    const gPrev = $("#galPrev");
+    const gNext = $("#galNext");
+    if (gPrev) gPrev.hidden = p.images.length < 2;
+    if (gNext) gNext.hidden = p.images.length < 2;
 
     $("#modalThumbs").innerHTML =
       p.images.length > 1
@@ -1323,6 +1339,17 @@
     $("#modalClose").addEventListener("click", closeModal);
     $("#modalBackdrop").addEventListener("click", closeModal);
     document.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) || "";
+      if (
+        (e.key === "ArrowLeft" || e.key === "ArrowRight") &&
+        tag !== "INPUT" &&
+        tag !== "TEXTAREA" &&
+        tag !== "SELECT" &&
+        $("#productModal").classList.contains("open")
+      ) {
+        galleryStep(e.key === "ArrowRight" ? 1 : -1);
+        return;
+      }
       if (e.key === "Escape") {
         closeModal();
         closeCart();
@@ -1400,10 +1427,13 @@
     if ($("#infoClose")) $("#infoClose").addEventListener("click", closeInfoModal);
     if ($("#infoBackdrop")) $("#infoBackdrop").addEventListener("click", closeInfoModal);
 
-    /* galeria produktu: swipe + zoom kliknięciem */
+    /* galeria produktu: swipe (dotyk), przeciąganie myszą, strzałki ‹ ›,
+       klawiatura i zoom kliknięciem */
     const mmWrap = $("#modalMainImgWrap");
     if (mmWrap) {
       let touchX0 = null;
+      let mouseX0 = null;
+      let suppressZoomClick = false;
       mmWrap.addEventListener(
         "touchstart",
         (e) => {
@@ -1415,15 +1445,31 @@
         if (touchX0 == null || !e.changedTouches || !e.changedTouches[0]) return;
         const dx = e.changedTouches[0].clientX - touchX0;
         touchX0 = null;
-        if (Math.abs(dx) < 40 || !modalProduct) return;
-        const n = modalProduct.images.length;
-        if (n < 2) return;
-        modalImgIndex = (modalImgIndex + (dx < 0 ? 1 : n - 1)) % n;
-        renderModal();
+        if (Math.abs(dx) < 40) return;
+        galleryStep(dx < 0 ? 1 : -1);
+      });
+      mmWrap.addEventListener("mousedown", (e) => {
+        mouseX0 = e.clientX;
+      });
+      mmWrap.addEventListener("mouseup", (e) => {
+        if (mouseX0 == null) return;
+        const dx = e.clientX - mouseX0;
+        mouseX0 = null;
+        if (Math.abs(dx) >= 40) {
+          suppressZoomClick = true;
+          galleryStep(dx < 0 ? 1 : -1);
+        }
+      });
+      mmWrap.addEventListener("mouseleave", () => {
+        mouseX0 = null;
       });
       const mmImg = $("#modalMainImg");
       mmImg.style.cursor = "zoom-in";
       mmImg.addEventListener("click", (e) => {
+        if (suppressZoomClick) {
+          suppressZoomClick = false;
+          return;
+        }
         mmImg.classList.toggle("zoom");
         if (mmImg.classList.contains("zoom")) {
           const r = mmImg.getBoundingClientRect();
@@ -1436,6 +1482,10 @@
           mmImg.style.cursor = "zoom-in";
         }
       });
+      const gPrev = $("#galPrev");
+      const gNext = $("#galNext");
+      if (gPrev) gPrev.addEventListener("click", () => galleryStep(-1));
+      if (gNext) gNext.addEventListener("click", () => galleryStep(1));
     }
 
     /* geolokalizacja: wpisz miasto → szukaj paczkomatu */
