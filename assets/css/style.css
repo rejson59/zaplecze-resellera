@@ -3370,3 +3370,26 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     box-shadow: 0 0 0 1px var(--gold);
   }
 }
+
+
+/* ============================================================
+   v24 — przyciski hero pod konkretnymi statystykami
+   (Jak kupić → produkty · Płatności → wysyłka · Opinie → średnia)
+   ============================================================ */
+.hero-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.hero-stats .hq-btn {
+  margin-top: 12px;
+  white-space: normal;
+  text-align: left;
+}
+@media (max-width: 860px) {
+  .hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+}
