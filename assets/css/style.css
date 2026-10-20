@@ -3435,3 +3435,70 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     right: -4px;
   }
 }
+
+/* ============================================================
+   v26 — pigułka nigdy nie wypycha koszyka (elementy mogą się
+   ścieśniać); okienka info: układ treści bez nachodzenia
+   ============================================================ */
+@media (min-width: 861px) {
+  .header-inner {
+    gap: 10px;
+    padding: 8px 10px 8px 18px;
+  }
+  .logo {
+    flex: none;
+    min-width: 0;
+  }
+  .main-nav {
+    min-width: 0;
+  }
+  .main-nav a {
+    padding: 0 10px;
+  }
+  .search-box.desktop {
+    flex: 0 1 190px;   /* wyszukiwarka się ścieśnia, zamiast wypychać koszyk */
+    min-width: 110px;
+    width: auto;
+  }
+  .search-box.desktop input {
+    width: 100%;
+    min-width: 0;
+  }
+  .header-actions {
+    flex: none;
+    gap: 8px;
+  }
+  .cart-btn {
+    flex: none;
+  }
+}
+@media (min-width: 861px) and (max-width: 1279px) {
+  .logo-sub {
+    display: none;
+  }
+  .main-nav a {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+}
+
+/* okienka info (Płatności / Jak kupić / Opinie): treściclone ze stron
+   mają swoje szerokie gridy — w wąskim oknie układają się w kolumny */
+.info-body .payments-grid {
+  grid-template-columns: 1fr;
+}
+.info-body .pay-methods {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.info-body .steps {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.info-body .pay-card,
+.info-body .step,
+.info-body .review-card {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.info-body > .section-head {
+  padding-right: 46px; /* miejsce na przycisk ✕ */
+}
