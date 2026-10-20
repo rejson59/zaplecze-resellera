@@ -547,6 +547,26 @@
       document.body.style.overflow = "";
   }
 
+  /* ---------------- Auto-fit nagłówka hero ----------------
+     Mierzymy realną szerokość wierszy i ściągamy rozmiar, dopóki
+     najdłuższe słowo mieści się w kolumnie tekstu (działa z każdym
+     fontem i każdą szerokością ekranu — także po dociągnięciu fontów). */
+  function fitHeroTitle() {
+    const h1 = $(".hero h1");
+    if (!h1) return;
+    h1.style.fontSize = "";
+    let guard = 0;
+    while (
+      h1.scrollWidth > h1.clientWidth + 1 &&
+      guard < 40
+    ) {
+      const cur = parseFloat(getComputedStyle(h1).fontSize) || 68;
+      if (cur <= 26) break;
+      h1.style.fontSize = cur - 2 + "px";
+      guard++;
+    }
+  }
+
   /* ---------------- Animowane liczniki hero ---------------- */
   function animateStats() {
     if (!("requestAnimationFrame" in window)) return;
@@ -1567,6 +1587,14 @@
   renderPayments();
   renderCart();
   renderRecent();
+  fitHeroTitle();
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then)
+    document.fonts.ready.then(() => fitHeroTitle());
+  let fitTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(fitHeroTitle, 150);
+  });
   initUI();
   observeReveals();
 
