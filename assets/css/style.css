@@ -3332,3 +3332,41 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
     width: 190px;
   }
 }
+
+
+/* ============================================================
+   v23 — jedna pigułka bez pigułek w środku, odsunięta od góry;
+   karty produktów nieklikalne (bez modala i szybkich podglądów)
+   ============================================================ */
+@media (min-width: 861px) {
+  .site-header {
+    height: calc(var(--header-h) + 18px); /* pigułka odsunięta od górnej krawędzi */
+  }
+  .main-nav {
+    gap: 2px;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+  .header-inner .logo {
+    border-right: 1px solid var(--line);
+    padding-right: 16px;
+  }
+  .header-actions {
+    border-left: 1px solid var(--line);
+    padding-left: 14px;
+  }
+  .search-box input {
+    border-color: transparent;
+    background: transparent;
+  }
+  .search-box input:focus {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+}

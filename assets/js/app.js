@@ -227,16 +227,15 @@
         const off = Math.round((1 - p.price / p.regular) * 100);
         return `
         <article class="p-card" style="--d:${Math.min(i, 11) * 45}ms" data-id="${p.id}">
-          <div class="p-media" data-open="${p.id}" role="button" tabindex="0"
+          <div class="p-media"
                aria-label="Zobacz ${p.name}">
             ${p.badge ? `<span class="p-badge">${p.badge}</span>` : ""}
             <span class="p-discount">-${off}%</span>
             <img src="${p.images[0]}" alt="${p.name}" loading="lazy" decoding="async" />
-            <button class="btn btn-sm p-quick" data-open="${p.id}">Szybki podgląd</button>
           </div>
           <div class="p-body">
             <span class="p-cat">${CAT_NAME[p.category]} · ${p.brand}</span>
-            <h3 class="p-name" data-open="${p.id}">${p.name}</h3>
+            <h3 class="p-name">${p.name}</h3>
             <div class="p-price-row">
               <span class="p-price">${money(p.price)}</span>
               <s class="p-regular">${money(p.regular)}</s>
@@ -255,13 +254,6 @@
         addToCart(b.dataset.add, 1);
       })
     );
-    $$("[data-open]", grid).forEach((el) => {
-      el.addEventListener("click", () => openModal(el.dataset.open));
-      if (el.getAttribute("role") === "button")
-        el.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") openModal(el.dataset.open);
-        });
-    });
   }
 
   /* ---------------- Reviews ---------------- */
@@ -1531,22 +1523,6 @@
         }
       });
     if ($("#geoMapBtn")) $("#geoMapBtn").addEventListener("click", toggleGeoMap);
-
-    /* podpowiedź: produkty są klikalne (znika po zamknięciu — localStorage) */
-    const tip = $("#cardsTip");
-    if (tip) {
-      let dismissed = false;
-      try {
-        dismissed = !!localStorage.getItem("zaplecze-tip-cards");
-      } catch (e) {}
-      tip.hidden = dismissed;
-      $("#cardsTipClose").addEventListener("click", () => {
-        tip.hidden = true;
-        try {
-          localStorage.setItem("zaplecze-tip-cards", "1");
-        } catch (e) {}
-      });
-    }
 
     /* reveal on scroll */
     const io =
