@@ -941,6 +941,23 @@
      na urządzeniu. */
   let lastPts = [];
   let lastCity = "";
+  let lastCenter = null;
+
+  function kmFrom(el, c) {
+    if (!c) return null;
+    const rad = Math.PI / 180;
+    const dLat = (el.lat - c.lat) * rad;
+    const dLon = (el.lon - c.lon) * rad;
+    const h =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(c.lat * rad) * Math.cos(el.lat * rad) * Math.sin(dLon / 2) ** 2;
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  }
+  function kmTxt(km) {
+    if (km == null) return "";
+    const v = km < 10 ? Math.round(km * 10) / 10 : Math.round(km);
+    return ` · ~${String(v).replace(".", ",")} km od centrum`;
+  }
 
   function escapeHtml(s) {
     return String(s).replace(
@@ -966,6 +983,9 @@
       updateCheckoutLink();
     }
     renderGeoChip();
+    const panel = $("#geoMapPanel");
+    if (panel) panel.hidden = true;
+    setGeoStatus("✅ Paczkomat w zamówieniu: " + label + " — resztę ustalimy na priv");
     toast("Paczkomat wstawiony do zamówienia ✅");
   }
 
@@ -984,7 +1004,7 @@
         .slice(0, 8)
         .map(
           (el, i) =>
-            `<button type="button" class="geo-list-item" data-pt="${i}">📦 ${escapeHtml(pointLabel(el, city))}</button>`
+            `<button type="button" class="geo-list-item" data-pt="${i}">📦 ${escapeHtml(pointLabel(el, city))}${escapeHtml(kmTxt(kmFrom(el, lastCenter)))}</button>`
         )
         .join("");
     $$("[data-pt]", box).forEach((b) =>
@@ -1113,6 +1133,10 @@
         return;
       }
       lastCity = geo.name;
+      lastCenter = { lat: geo.lat, lon: geo.lon };
+      try {
+        localStorage.setItem("zaplecze-geo-lastq", city);
+      } catch (e) {}
       const pts = await fetchLockerPoints(geo);
       lastPts = pts;
       if (!pts.length) {
@@ -1415,6 +1439,16 @@
     }
 
     /* geolokalizacja: wpisz miasto → szukaj paczkomatu */
+    const gci = $("#geoCityInput");
+    if (gci && !gci.value.trim()) {
+      const hitCity = savedCity();
+      let lastq = "";
+      try {
+        lastq = localStorage.getItem("zaplecze-geo-lastq") || "";
+      } catch (e) {}
+      const prefill = (hitCity && hitCity.name) || lastq;
+      if (prefill) gci.value = prefill;
+    }
     if ($("#geoSearchBtn"))
       $("#geoSearchBtn").addEventListener("click", () =>
         searchLockers($("#geoCityInput").value)

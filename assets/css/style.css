@@ -3186,3 +3186,24 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
 .geo-inpost:hover {
   color: var(--gold-soft);
 }
+
+
+/* ============================================================
+   v19 — hero: nagłówek zawsze mieści się w swojej kolumnie
+   (słowa w całości, nic nie wchodzi pod kolaż ani za ekran)
+   ============================================================ */
+.hero-grid {
+  container-type: inline-size;
+  container-name: hero;
+}
+.hero h1 {
+  font-size: clamp(30px, 6.2vw, 76px);
+  letter-spacing: -0.03em;
+}
+/* precyzyjnie: rozmiar liczony od szerokości kontenera hero,
+   więc przy 2 kolumnach słowo nigdy nie przerasta kolumny tekstu */
+@container hero (min-width: 1px) {
+  .hero h1 {
+    font-size: clamp(30px, min(6.2vw, 6.6cqw), 76px);
+  }
+}
