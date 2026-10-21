@@ -1,0 +1,64 @@
+# Deploy na Vercel (zaplecze-resellera.vercel.app) przy kazdym pushu na branch roboczy.
+# Wymaga sekretu VERCEL_TOKEN w Settings -> Secrets and variables -> Actions.
+# Dopoki sekret nie istnieje, workflow grzecznie pomija deploy (zielony status).
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - arena/ac442971-zaplecze-resellera
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check VERCEL_TOKEN
+        id: token
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "VERCEL_TOKEN brak - deploy pominiety"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.token.outputs.present == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.token.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        if: steps.token.outputs.present == 'true'
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel project settings
+        if: steps.token.outputs.present == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_dcCxTtTBlnsVtC99GdKoCuii
+          VERCEL_PROJECT_ID: prj_Icu5Q7NnPtMQpTVXkhwv87lCiH3e
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build (zero-config static)
+        if: steps.token.outputs.present == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_dcCxTtTBlnsVtC99GdKoCuii
+          VERCEL_PROJECT_ID: prj_Icu5Q7NnPtMQpTVXkhwv87lCiH3e
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy to production
+        if: steps.token.outputs.present == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_dcCxTtTBlnsVtC99GdKoCuii
+          VERCEL_PROJECT_ID: prj_Icu5Q7NnPtMQpTVXkhwv87lCiH3e
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
