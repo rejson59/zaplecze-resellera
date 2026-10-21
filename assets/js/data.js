@@ -564,6 +564,12 @@ window.STORE_DATA = {
       author: "Klient · zamówienie przez Telegram",
       stars: 5,
     },
+    {
+      image: "podziekowanie-nr5.jpg",
+      quote: "Zajebiste perfumy. Polecam 📸",
+      author: "Klient · perfumy (zrzut z Telegrama)",
+      stars: 5,
+    },
   ],
 
   /* Metody płatności — treść zgodna z informacją od sprzedawcy */
