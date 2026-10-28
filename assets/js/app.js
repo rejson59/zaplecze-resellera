@@ -54,6 +54,11 @@
       return p && p.category === "perfumy" ? sum + qty : sum;
     }, 0);
   }
+  /* Promo z okazji 30 osób na grupie TG: kup 2 perfumy -> 1 gratis
+     (kazde rozpoczete 3 szt. = 1 szt. gratis) */
+  function promoFreePerfumes(units) {
+    return Math.floor(units / 3);
+  }
   function perfumeUnitPrice(units) {
     let price = DATA.perfumeTiers[0].price;
     for (const t of DATA.perfumeTiers) if (units >= t.min) price = t.price;
@@ -337,16 +342,18 @@
 
   function cartTotals() {
     const entries = cartEntries();
-    const subtotal = entries.reduce(
-      (s, e) => s + unitPriceFor(e.product, e.qty) * e.qty,
-      0
-    );
+    const perfUnits = perfumeUnitsInCart();
+    const free = promoFreePerfumes(perfUnits);
+    const discount = free * perfumeUnitPrice(perfUnits);
+    const subtotal =
+      entries.reduce((s, e) => s + unitPriceFor(e.product, e.qty) * e.qty, 0) -
+      discount;
     const method = DATA.payments.methods.find((m) => m.id === state.payment);
     let extra = 0;
     if (method && method.extra.type === "percent")
       extra = Math.round((subtotal * method.extra.value) / 100);
     if (method && method.extra.type === "flat") extra = method.extra.value;
-    return { subtotal, extra, total: subtotal + extra, method };
+    return { subtotal, extra, total: subtotal + extra, method, free, discount, perfUnits };
   }
 
   function renderCart() {
@@ -439,7 +446,13 @@
 
     /* totals */
     const t = cartTotals();
-    const rows = [`<div class="row"><span>Wartość produktów</span><span>${money(t.subtotal)}</span></div>`];
+    const rows = [
+      `<div class="row"><span>Wartość produktów</span><span>${money(t.subtotal + (t.discount || 0))}</span></div>`,
+    ];
+    if (t.discount > 0)
+      rows.push(
+        `<div class="row"><span>🎉 Promo 2+1 gratis (30 osób na TG)</span><span>−${money(t.discount)}</span></div>`
+      );
     if (t.extra > 0)
       rows.push(
         `<div class="row"><span>${t.method.cartLabel}</span><span>+${money(t.extra)}</span></div>`
@@ -459,6 +472,12 @@
           ? `🎉 Masz ${perfUnits} szt. perfum — cena 110 zł/szt. Przy 10+ możliwa dalsza negocjacja na priv.`
           : `🎉 Masz ${perfUnits} szt. perfum — rabat ilościowy: ${perfPrice} zł/szt.`;
       $("#cartItems").appendChild(note);
+    }
+    if (t.free >= 1) {
+      const noteP = document.createElement("div");
+      noteP.className = "tier-note";
+      noteP.textContent = `🎉 Promo z okazji 30 osób na grupie TG: masz ${t.perfUnits} perfum — ${t.free} szt. GRATIS!`;
+      $("#cartItems").appendChild(noteP);
     }
     const tierEntry = entries.find((e) => e.product.tiers);
     if (tierEntry && tierEntry.qty >= 10) {
@@ -744,6 +763,8 @@
   function buildOrderMessage(entries, t) {
     /* tylko konkrety: pozycje, płatność, suma, dane do wysyłki */
     const lines = entries.map(({ product: p, qty }) => `• ${qty}× ${p.name}`);
+    if (t && t.free >= 1)
+      lines.push(`• Promo 30 osób TG: ${t.free}× perfumy GRATIS (−${t.discount} zł)`);
     const o = loadOrder();
     const info = [];
     if (o.name && o.name.trim()) info.push(`Imię/nick: ${o.name.trim()}`);

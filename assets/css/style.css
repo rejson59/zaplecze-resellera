@@ -3516,3 +3516,22 @@ h1, h2, h3, h4, p, li, .btn, .review-quote, .cart-notice {
   line-height: 1.5;
   color: var(--muted-2);
 }
+
+
+/* ============================================================
+   v29 — baner promo 2+1 gratis (30 osób na grupie TG)
+   ============================================================ */
+.promo-strip {
+  margin: 0 0 22px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(216, 180, 92, 0.45);
+  background: linear-gradient(100deg, rgba(216, 180, 92, 0.16), rgba(216, 180, 92, 0.05) 60%);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: center;
+}
+.promo-strip b {
+  color: var(--gold-soft);
+}
