@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#08080a" />
+  <title>404 — ta strona nie istnieje | Zaplecze Resellera</title>
+  <style>
+    :root {
+      --bg: #08080a;
+      --gold: #d8b45c;
+      --text: #f2efe8;
+      --muted: #9a968c;
+      --line: rgba(255, 255, 255, 0.1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      background:
+        radial-gradient(600px 300px at 20% 10%, rgba(216, 180, 92, 0.08), transparent 60%),
+        radial-gradient(500px 400px at 85% 90%, rgba(216, 180, 92, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    main { text-align: center; max-width: 480px; }
+    .brand {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(216, 180, 92, 0.35);
+      border-radius: 999px;
+      padding: 8px 16px;
+      background: rgba(216, 180, 92, 0.06);
+      margin-bottom: 28px;
+    }
+    .code {
+      font-family: "Syne", "Inter", system-ui, sans-serif;
+      font-weight: 800;
+      font-size: clamp(110px, 30vw, 190px);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(160deg, #f4e3b2 0%, var(--gold) 45%, #8a6a2f 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    h1 {
+      font-family: "Syne", "Inter", system-ui, sans-serif;
+      font-size: clamp(22px, 5vw, 30px);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 10px 0 12px;
+      animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+    }
+    p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+      animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+    }
+    a.btn {
+      display: block;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 14px 18px;
+      border-radius: 999px;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+    a.btn:active { transform: translateY(1px) scale(0.98); }
+    a.primary {
+      color: #17130a;
+      background: linear-gradient(160deg, #f0dda6, var(--gold));
+      box-shadow: 0 10px 30px rgba(216, 180, 92, 0.25);
+    }
+    a.primary:hover { box-shadow: 0 14px 40px rgba(216, 180, 92, 0.4); }
+    a.ghost {
+      color: var(--text);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    a.ghost:hover { border-color: rgba(216, 180, 92, 0.5); }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="brand">Zaplecze Resellera™</span>
+    <div class="code">404</div>
+    <h1>Ta strona nie istnieje</h1>
+    <p>Zboczyłeś z kursu — ale spokojnie, cały towar czeka na głównej. Elektronika, sneakersy, perfumy i LEGO, wysyłka InPost do 24 h.</p>
+    <div class="actions">
+      <a class="btn primary" id="homeLink" href="/">Wróć do sklepu</a>
+      <a class="btn ghost" href="https://t.me/Xinekx" target="_blank" rel="noopener">Napisz na Telegram — @Xinekx</a>
+    </div>
+  </main>
+  <script>
+    /* GitHub Pages serwuje sklep pod /zaplecze-resellera/, Vercel pod / — dobieramy bazę */
+    (function () {
+      var p = location.pathname;
+      var base = p.indexOf("/zaplecze-resellera") === 0 ? "/zaplecze-resellera/" : "/";
+      document.getElementById("homeLink").setAttribute("href", base);
+    })();
+  </script>
+</body>
+</html>

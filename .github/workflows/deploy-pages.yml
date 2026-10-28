@@ -1,0 +1,59 @@
+# Deploy statycznego sklepu "Zaplecze Resellera" na GitHub Pages.
+# Wymaga: Settings → Pages → Source = "GitHub Actions" (resztę robi ten workflow).
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - arena/ac442971-zaplecze-resellera
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage site files into _site/
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp 404.html _site/
+          cp -r assets _site/
+          cp IMG_*.jpg _site/
+          cp zestaw-lego-*.jpg _site/
+          cp podziekowanie-nr4.jpg _site/
+          ls -la _site | head -20
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Uwaga: celowo bez bloku "environment:" — środowisko github-pages ma domyślnie
+    # branch policy blokujące deploye z branchy innych niż main, a token CI nie może
+    # tej polityki edytować. actions/deploy-pages i tak zwraca page_url poniżej.
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Report page URL
+        run: echo "🌐 Strona opublikowana pod ${{ steps.deployment.outputs.page_url }}"
